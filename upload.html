@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Upload Attendance Sheets — AVS Retreat</title>
+<style>
+  :root{--accent:#4f46e5;--border:#e2e8f0;--bg:#f8fafc;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:#0f172a;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
+    display:flex;justify-content:space-between;align-items:center;}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
+  header h1{font-size:1.05rem;margin:0;}
+  main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
+
+  .step{display:none;}
+  .step.active{display:block;}
+
+  .search-box{position:relative;margin-bottom:14px;}
+  .search-box input{width:100%;padding:14px 14px;border:1px solid var(--border);border-radius:12px;
+    font-size:1rem;background:#fff;}
+  .results{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+  .result-item{padding:14px;border-bottom:1px solid var(--border);cursor:pointer;}
+  .result-item:last-child{border-bottom:none;}
+  .result-item:active{background:#eef2ff;}
+  .result-item .rn{font-weight:700;}
+  .result-item .rm{font-size:0.8rem;color:#64748b;}
+  .empty-hint{color:#64748b;font-size:0.9rem;text-align:center;padding:20px 0;}
+
+  .selected-school{background:#eef2ff;border-radius:12px;padding:14px 16px;margin-bottom:16px;
+    display:flex;justify-content:space-between;align-items:center;}
+  .selected-school b{font-size:1.05rem;color:var(--accent);}
+  .selected-school button{background:none;border:none;color:#4f46e5;font-size:0.85rem;font-weight:600;
+    text-decoration:underline;cursor:pointer;padding:0;}
+
+  .capture-area{border:2px dashed var(--border);border-radius:14px;padding:28px 16px;text-align:center;
+    background:#fff;margin-bottom:16px;}
+  .capture-area p{color:#64748b;font-size:0.85rem;margin:8px 0 16px;}
+  .capture-btns{display:flex;gap:10px;}
+  .capture-btns label, .capture-btns button{flex:1;padding:14px;border-radius:10px;border:none;
+    font-weight:700;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
+  .btn-camera{background:var(--accent);color:#fff;}
+  .btn-gallery{background:#e2e8f0;color:#0f172a;}
+  input[type=file]{display:none;}
+
+  .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+  .preview-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;border:1px solid var(--border);}
+  .preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .preview-item .remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;
+    border:none;border-radius:50%;width:22px;height:22px;font-size:0.75rem;cursor:pointer;}
+  .preview-item .status{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);
+    color:#fff;font-size:0.65rem;text-align:center;padding:2px 0;}
+
+  button.submit{width:100%;padding:15px;border:none;border-radius:12px;background:#16a34a;
+    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;}
+  button.submit:disabled{opacity:0.6;}
+
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;}
+  .msg.ok{background:#dcfce7;color:#166534;display:block;}
+  .msg.err{background:#fee2e2;color:#991b1b;display:block;}
+</style>
+</head>
+<body>
+<header>
+  <h1>📷 Upload Sheets</h1>
+  <a href="index.html">Home</a>
+</header>
+<main>
+
+  <!-- STEP 1: choose school -->
+  <section class="step active" id="step1">
+    <p style="color:#475569;font-size:0.9rem;margin-top:0;">
+      Search for the school that was just registered, then attach its scanned attendance sheet(s).
+    </p>
+    <div class="search-box">
+      <input id="schoolSearch" placeholder="Type a school name…" autofocus />
+    </div>
+    <div class="results" id="results"></div>
+    <div class="empty-hint" id="emptyHint" style="display:none;">No matching school found. Ask the registration desk to confirm it's been registered first.</div>
+  </section>
+
+  <!-- STEP 2: capture / upload -->
+  <section class="step" id="step2">
+    <div class="selected-school">
+      <div>
+        <div style="font-size:0.8rem;color:#64748b;">Uploading for</div>
+        <b id="selectedSchoolName"></b>
+      </div>
+      <button id="changeSchool">Change</button>
+    </div>
+
+    <div class="capture-area">
+      <p>Take a photo of the scanned attendance sheet, or choose from gallery. You can add several.</p>
+      <div class="capture-btns">
+        <label class="btn-camera" for="cameraInput">📸 Camera
+          <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple />
+        </label>
+        <label class="btn-gallery" for="galleryInput">🖼️ Gallery
+          <input type="file" id="galleryInput" accept="image/*" multiple />
+        </label>
+      </div>
+    </div>
+
+    <div class="preview-grid" id="previewGrid"></div>
+
+    <button class="submit" id="uploadBtn" disabled>Upload Photo(s)</button>
+    <div class="msg" id="msg"></div>
+  </section>
+
+</main>
+
+<script src="config.js"></script>
+<script>
+  let allSchools = [];
+  let selectedSchool = null;
+  let pendingFiles = []; // { file, dataUrl, status: 'pending'|'uploading'|'done'|'error' }
+
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const resultsEl = document.getElementById('results');
+  const emptyHint = document.getElementById('emptyHint');
+  const searchInput = document.getElementById('schoolSearch');
+
+  async function loadSchools() {
+    try {
+      const res = await AVS.get('getSchools');
+      allSchools = res.schools || [];
+    } catch (e) { allSchools = []; }
+  }
+  loadSchools();
+  setInterval(loadSchools, 15000);
+
+  function renderResults(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) { resultsEl.innerHTML = ''; emptyHint.style.display = 'none'; return; }
+    const matches = allSchools.filter(s =>
+      String(s.SchoolName).toLowerCase().includes(q)
+    ).slice(0, 12);
+    if (!matches.length) {
+      resultsEl.innerHTML = '';
+      emptyHint.style.display = 'block';
+      return;
+    }
+    emptyHint.style.display = 'none';
+    resultsEl.innerHTML = matches.map((s, i) => `
+      <div class="result-item" data-idx="${allSchools.indexOf(s)}">
+        <div class="rn">${s.SchoolName}</div>
+        <div class="rm">${s.Location || ''} ${s.Location ? '·' : ''} Coordinator: ${s.CoordinatorName || '—'}</div>
+      </div>
+    `).join('');
+    [...resultsEl.querySelectorAll('.result-item')].forEach(el => {
+      el.addEventListener('click', () => selectSchool(allSchools[parseInt(el.dataset.idx)]));
+    });
+  }
+  searchInput.addEventListener('input', () => renderResults(searchInput.value));
+
+  function selectSchool(school) {
+    selectedSchool = school;
+    document.getElementById('selectedSchoolName').textContent = school.SchoolName;
+    step1.classList.remove('active');
+    step2.classList.add('active');
+    pendingFiles = [];
+    renderPreviews();
+  }
+
+  document.getElementById('changeSchool').addEventListener('click', () => {
+    selectedSchool = null;
+    step2.classList.remove('active');
+    step1.classList.add('active');
+    searchInput.value = '';
+    resultsEl.innerHTML = '';
+  });
+
+  function handleFiles(fileList) {
+    [...fileList].forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        pendingFiles.push({ file, dataUrl: reader.result, status: 'pending' });
+        renderPreviews();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+  document.getElementById('cameraInput').addEventListener('change', e => handleFiles(e.target.files));
+  document.getElementById('galleryInput').addEventListener('change', e => handleFiles(e.target.files));
+
+  const previewGrid = document.getElementById('previewGrid');
+  const uploadBtn = document.getElementById('uploadBtn');
+
+  function renderPreviews() {
+    previewGrid.innerHTML = pendingFiles.map((p, i) => `
+      <div class="preview-item">
+        <img src="${p.dataUrl}" />
+        ${p.status === 'pending' ? `<button class="remove" data-i="${i}">✕</button>` : ''}
+        ${p.status !== 'pending' ? `<div class="status">${
+          p.status === 'uploading' ? 'Uploading…' : p.status === 'done' ? '✅ Uploaded' : '❌ Failed'
+        }</div>` : ''}
+      </div>
+    `).join('');
+    [...previewGrid.querySelectorAll('.remove')].forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingFiles.splice(parseInt(btn.dataset.i), 1);
+        renderPreviews();
+      });
+    });
+    uploadBtn.disabled = !pendingFiles.some(p => p.status === 'pending');
+  }
+
+  const msg = document.getElementById('msg');
+  function showMsg(text, ok) {
+    msg.textContent = text;
+    msg.className = 'msg ' + (ok ? 'ok' : 'err');
+  }
+
+  uploadBtn.addEventListener('click', async () => {
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = 'Uploading…';
+    let successCount = 0, failCount = 0;
+
+    for (const p of pendingFiles) {
+      if (p.status !== 'pending') continue;
+      p.status = 'uploading';
+      renderPreviews();
+      try {
+        const res = await AVS.post({
+          action: 'uploadPhoto',
+          schoolId: selectedSchool.SchoolID,
+          schoolName: selectedSchool.SchoolName,
+          fileName: p.file.name,
+          mimeType: p.file.type,
+          base64Data: p.dataUrl,
+          station: AVS.getStation()
+        });
+        p.status = res.success ? 'done' : 'error';
+        if (res.success) successCount++; else failCount++;
+      } catch (e) {
+        p.status = 'error';
+        failCount++;
+      }
+      renderPreviews();
+    }
+
+    uploadBtn.textContent = 'Upload Photo(s)';
+    uploadBtn.disabled = !pendingFiles.some(p => p.status === 'pending');
+    if (successCount && !failCount) showMsg(`✅ ${successCount} photo(s) uploaded for ${selectedSchool.SchoolName}.`, true);
+    else if (successCount && failCount) showMsg(`⚠️ ${successCount} uploaded, ${failCount} failed. Retry the failed ones.`, false);
+    else showMsg('❌ Upload failed. Check connection and try again.', false);
+  });
+</script>
+</body>
+</html>

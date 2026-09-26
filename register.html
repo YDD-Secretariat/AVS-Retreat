@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Register School — AVS Retreat</title>
+<style>
+  :root{--accent:#4f46e5;--danger:#dc2626;--ok:#16a34a;--bg:#f8fafc;--border:#e2e8f0;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:#0f172a;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
+    display:flex;justify-content:space-between;align-items:center;}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
+  header h1{font-size:1.05rem;margin:0;}
+  main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
+  .station-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+    margin-bottom:16px;display:flex;gap:8px;align-items:center;}
+  .station-bar input{flex:1;border:none;font-size:0.95rem;background:transparent;outline:none;}
+  .station-bar label{font-size:0.8rem;color:#64748b;white-space:nowrap;}
+  fieldset{border:none;padding:0;margin:0 0 18px;}
+  legend{font-weight:700;font-size:0.95rem;margin-bottom:8px;color:var(--accent);}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:0.82rem;color:#475569;margin-bottom:4px;font-weight:600;}
+  .field input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:1rem;background:#fff;}
+  .field input:focus{outline:2px solid var(--accent);border-color:transparent;}
+  .row{display:flex;gap:10px;}
+  .row .field{flex:1;}
+  .total-box{background:#eef2ff;border-radius:10px;padding:12px 14px;font-weight:700;
+    display:flex;justify-content:space-between;color:var(--accent);margin-bottom:16px;}
+  button{width:100%;padding:15px;border:none;border-radius:12px;background:var(--accent);
+    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;}
+  button:disabled{opacity:0.6;}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;}
+  .msg.ok{background:#dcfce7;color:#166534;display:block;}
+  .msg.err{background:#fee2e2;color:#991b1b;display:block;}
+
+  /* Duplicate warning modal */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+    align-items:flex-end;justify-content:center;z-index:50;}
+  .overlay.show{display:flex;}
+  .sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;
+    padding:20px;max-height:80vh;overflow-y:auto;}
+  .sheet h2{margin-top:0;font-size:1.1rem;color:var(--danger);}
+  .match{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:10px;font-size:0.85rem;}
+  .match b{display:block;font-size:0.95rem;margin-bottom:2px;}
+  .match .sim{color:var(--danger);font-weight:700;}
+  .sheet-actions{display:flex;gap:10px;margin-top:14px;}
+  .sheet-actions button{flex:1;}
+  .btn-secondary{background:#e2e8f0;color:#0f172a;}
+  .btn-danger{background:var(--danger);}
+
+  .recent{margin-top:24px;}
+  .recent h3{font-size:0.9rem;color:#475569;margin-bottom:8px;}
+  .recent-item{background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;font-size:0.85rem;display:flex;justify-content:space-between;}
+  .recent-item .rname{font-weight:700;}
+  .recent-item .rmeta{color:#64748b;font-size:0.78rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>📝 Register School</h1>
+  <a href="index.html">Home</a>
+</header>
+<main>
+
+  <div class="station-bar">
+    <label for="station">Station:</label>
+    <input id="station" placeholder="e.g. Station 1 – Bola" />
+  </div>
+
+  <form id="regForm">
+    <fieldset>
+      <legend>School</legend>
+      <div class="field">
+        <label>School Name</label>
+        <input id="schoolName" required placeholder="e.g. Anthony Girls Secondary School" />
+      </div>
+      <div class="field">
+        <label>School Location</label>
+        <input id="schoolLocation" placeholder="e.g. Maryland, Lagos" />
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Coordinator</legend>
+      <div class="field">
+        <label>Coordinator's Full Name</label>
+        <input id="coordName" required placeholder="e.g. Mrs. Adebayo" />
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Phone Number</label>
+          <input id="coordPhone" inputmode="tel" required placeholder="080..." />
+        </div>
+        <div class="field">
+          <label>Location / Details</label>
+          <input id="coordLocation" placeholder="Optional" />
+        </div>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Students</legend>
+      <div class="row">
+        <div class="field">
+          <label>Male Students</label>
+          <input id="male" type="number" inputmode="numeric" min="0" value="0" required />
+        </div>
+        <div class="field">
+          <label>Female Students</label>
+          <input id="female" type="number" inputmode="numeric" min="0" value="0" required />
+        </div>
+      </div>
+      <div class="total-box">
+        <span>Total Students</span>
+        <span id="totalDisplay">0</span>
+      </div>
+    </fieldset>
+
+    <button type="submit" id="submitBtn">Register School</button>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <div class="recent">
+    <h3>Recently registered (this device's view)</h3>
+    <div id="recentList"><div class="recent-item"><span class="rmeta">Loading…</span></div></div>
+  </div>
+</main>
+
+<!-- Duplicate warning bottom sheet -->
+<div class="overlay" id="overlay">
+  <div class="sheet">
+    <h2>⚠️ Possible duplicate school</h2>
+    <p style="font-size:0.85rem;color:#475569;">This school looks similar to one already registered:</p>
+    <div id="matchList"></div>
+    <div class="sheet-actions">
+      <button class="btn-secondary" id="cancelDup">Cancel</button>
+      <button class="btn-danger" id="proceedDup">It's a different school — Proceed</button>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  const stationInput = document.getElementById('station');
+  stationInput.value = AVS.getStation();
+  stationInput.addEventListener('change', () => AVS.setStation(stationInput.value.trim()));
+
+  const maleEl = document.getElementById('male');
+  const femaleEl = document.getElementById('female');
+  const totalDisplay = document.getElementById('totalDisplay');
+  function updateTotal() {
+    const t = (parseInt(maleEl.value) || 0) + (parseInt(femaleEl.value) || 0);
+    totalDisplay.textContent = t;
+  }
+  maleEl.addEventListener('input', updateTotal);
+  femaleEl.addEventListener('input', updateTotal);
+
+  const form = document.getElementById('regForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
+  const overlay = document.getElementById('overlay');
+  const matchList = document.getElementById('matchList');
+
+  function showMsg(text, ok) {
+    msg.textContent = text;
+    msg.className = 'msg ' + (ok ? 'ok' : 'err');
+  }
+
+  function buildPayload(confirmed) {
+    return {
+      action: 'registerSchool',
+      schoolName: document.getElementById('schoolName').value.trim(),
+      location: document.getElementById('schoolLocation').value.trim(),
+      coordinatorName: document.getElementById('coordName').value.trim(),
+      coordinatorPhone: document.getElementById('coordPhone').value.trim(),
+      coordinatorLocation: document.getElementById('coordLocation').value.trim(),
+      male: parseInt(maleEl.value) || 0,
+      female: parseInt(femaleEl.value) || 0,
+      station: stationInput.value.trim(),
+      confirmedNotDuplicate: !!confirmed
+    };
+  }
+
+  async function submitRegistration(confirmed) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    try {
+      const res = await AVS.post(buildPayload(confirmed));
+      if (res.duplicate) {
+        renderDuplicates(res.matches);
+        overlay.classList.add('show');
+        return;
+      }
+      if (res.success) {
+        showMsg('✅ Registered: ' + res.schoolName, true);
+        form.reset();
+        updateTotal();
+        loadRecent();
+      } else {
+        showMsg('❌ ' + (res.error || 'Could not register.'), false);
+      }
+    } catch (err) {
+      showMsg('❌ Network error — check connection and try again.', false);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register School';
+    }
+  }
+
+  function renderDuplicates(matches) {
+    matchList.innerHTML = matches.map(m => `
+      <div class="match">
+        <b>${m.schoolName}</b>
+        <span class="sim">${m.similarity}% similar</span><br/>
+        Coordinator: ${m.coordinatorName || '—'} · ${m.coordinatorPhone || '—'}<br/>
+        Students: ${m.total} (M:${m.male} / F:${m.female}) · Station: ${m.station || '—'}
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('cancelDup').onclick = () => overlay.classList.remove('show');
+  document.getElementById('proceedDup').onclick = () => {
+    overlay.classList.remove('show');
+    submitRegistration(true);
+  };
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    msg.className = 'msg';
+    submitRegistration(false);
+  });
+
+  async function loadRecent() {
+    const list = document.getElementById('recentList');
+    try {
+      const res = await AVS.get('getRecent', { limit: 8 });
+      const items = res.recent || [];
+      if (!items.length) {
+        list.innerHTML = '<div class="recent-item"><span class="rmeta">No schools registered yet.</span></div>';
+        return;
+      }
+      list.innerHTML = items.map(s => `
+        <div class="recent-item">
+          <div>
+            <div class="rname">${s.SchoolName}</div>
+            <div class="rmeta">${s.Station || 'Station —'} · M:${s.Male} F:${s.Female}</div>
+          </div>
+          <div class="rmeta">${new Date(s.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="recent-item"><span class="rmeta">Could not load recent activity.</span></div>';
+    }
+  }
+
+  loadRecent();
+  setInterval(loadRecent, 8000); // live-ish refresh across stations
+</script>
+</body>
+</html>
