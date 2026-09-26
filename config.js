@@ -1,7 +1,7 @@
 // ------------------------------------------------------------------
 // Paste your deployed Apps Script Web App URL here (ends in /exec).
 // ------------------------------------------------------------------
-const APPS_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwl_F2578W7aFxNS3Npe55Fd7ogmZZ6l4pUje_Lwo1IZNkhCdfXA0_h6xIV2FFFnudz/exec";
 
 const AVS = {
   async get(action, params) {
