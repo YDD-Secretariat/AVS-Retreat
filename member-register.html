@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Register Church Members — AVS Retreat</title>
+<style>
+  :root{--accent:#0d9488;--danger:#dc2626;--bg:#f8fafc;--border:#e2e8f0;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:#0f172a;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
+    display:flex;justify-content:space-between;align-items:center;}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
+  header h1{font-size:1.05rem;margin:0;}
+  main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
+
+  .station-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+    margin-bottom:16px;display:flex;gap:8px;align-items:center;}
+  .station-bar input{flex:1;border:none;font-size:0.95rem;background:transparent;outline:none;}
+  .station-bar label{font-size:0.8rem;color:#64748b;white-space:nowrap;}
+
+  .field{margin-bottom:16px;}
+  .field > label{display:block;font-size:0.82rem;color:#475569;margin-bottom:8px;font-weight:600;}
+
+  .chip-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .chip-row.two{grid-template-columns:repeat(2,1fr);}
+  .chip{border:1.5px solid var(--border);border-radius:10px;padding:12px 6px;text-align:center;
+    font-weight:700;font-size:0.9rem;background:#fff;cursor:pointer;color:#475569;}
+  .chip.active{border-color:var(--accent);background:#f0fdfa;color:var(--accent);}
+
+  .count-field input{width:100%;padding:14px;border:1px solid var(--border);border-radius:10px;
+    font-size:1.3rem;font-weight:700;text-align:center;background:#fff;}
+  .count-field input:focus{outline:2px solid var(--accent);border-color:transparent;}
+
+  .note-field input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:0.95rem;background:#fff;}
+
+  .summary{background:#f0fdfa;border-radius:10px;padding:12px 14px;font-size:0.9rem;color:#0f766e;
+    margin-bottom:16px;font-weight:600;}
+
+  button.submit{width:100%;padding:15px;border:none;border-radius:12px;background:var(--accent);
+    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;}
+  button.submit:disabled{opacity:0.6;}
+
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;}
+  .msg.ok{background:#dcfce7;color:#166534;display:block;}
+  .msg.err{background:#fee2e2;color:#991b1b;display:block;}
+
+  .recent{margin-top:24px;}
+  .recent h3{font-size:0.9rem;color:#475569;margin-bottom:8px;}
+  .recent-item{background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:10px 12px;margin-bottom:8px;font-size:0.85rem;display:flex;justify-content:space-between;}
+  .recent-item .rname{font-weight:700;}
+  .recent-item .rmeta{color:#64748b;font-size:0.78rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>⛪ Register Members</h1>
+  <a href="index.html">Home</a>
+</header>
+<main>
+
+  <div class="station-bar">
+    <label for="station">Station:</label>
+    <input id="station" placeholder="e.g. Church Desk – Tunde" />
+  </div>
+
+  <form id="memberForm">
+    <div class="field">
+      <label>Group</label>
+      <div class="chip-row" id="groupChips">
+        <div class="chip" data-value="Group 1">Group 1</div>
+        <div class="chip" data-value="Group 2">Group 2</div>
+        <div class="chip" data-value="Group 3">Group 3</div>
+        <div class="chip" data-value="Group 4">Group 4</div>
+        <div class="chip" data-value="Others" style="grid-column:span 2;">Others (outside Anthony)</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Category</label>
+      <div class="chip-row two" id="categoryChips">
+        <div class="chip" data-value="Member">Member</div>
+        <div class="chip" data-value="Worker">Worker</div>
+      </div>
+    </div>
+
+    <div class="field count-field">
+      <label>Number of People</label>
+      <input id="count" type="number" inputmode="numeric" min="1" placeholder="0" required />
+    </div>
+
+    <div class="field note-field">
+      <label>Note (optional)</label>
+      <input id="note" placeholder="e.g. arrived by bus, choir set, etc." />
+    </div>
+
+    <div class="summary" id="summary" style="display:none;"></div>
+
+    <button type="submit" class="submit" id="submitBtn">Register</button>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <div class="recent">
+    <h3>Recently registered</h3>
+    <div id="recentList"><div class="recent-item"><span class="rmeta">Loading…</span></div></div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script>
+  const stationInput = document.getElementById('station');
+  stationInput.value = AVS.getStation();
+  stationInput.addEventListener('change', () => AVS.setStation(stationInput.value.trim()));
+
+  let selectedGroup = null;
+  let selectedCategory = null;
+
+  function wireChips(containerId, onSelect) {
+    const chips = [...document.getElementById(containerId).querySelectorAll('.chip')];
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        onSelect(chip.dataset.value);
+      });
+    });
+  }
+  wireChips('groupChips', v => { selectedGroup = v; updateSummary(); });
+  wireChips('categoryChips', v => { selectedCategory = v; updateSummary(); });
+
+  const countInput = document.getElementById('count');
+  countInput.addEventListener('input', updateSummary);
+
+  const summary = document.getElementById('summary');
+  function updateSummary() {
+    const count = parseInt(countInput.value) || 0;
+    if (selectedGroup && selectedCategory && count > 0) {
+      summary.style.display = 'block';
+      summary.textContent = `Registering ${count} ${selectedCategory.toLowerCase()}${count === 1 ? '' : 's'} — ${selectedGroup}`;
+    } else {
+      summary.style.display = 'none';
+    }
+  }
+
+  const form = document.getElementById('memberForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
+  function showMsg(text, ok) {
+    msg.textContent = text;
+    msg.className = 'msg ' + (ok ? 'ok' : 'err');
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    msg.className = 'msg';
+    if (!selectedGroup) return showMsg('❌ Please select a group.', false);
+    if (!selectedCategory) return showMsg('❌ Please select Member or Worker.', false);
+    const count = parseInt(countInput.value) || 0;
+    if (count <= 0) return showMsg('❌ Enter how many people.', false);
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting…';
+    try {
+      const res = await AVS.post({
+        action: 'registerMember',
+        group: selectedGroup,
+        category: selectedCategory,
+        count: count,
+        note: document.getElementById('note').value.trim(),
+        station: stationInput.value.trim()
+      });
+      if (res.success) {
+        showMsg(`✅ Registered ${res.count} ${res.category.toLowerCase()}(s) — ${res.group}`, true);
+        countInput.value = '';
+        document.getElementById('note').value = '';
+        summary.style.display = 'none';
+        loadRecent();
+      } else {
+        showMsg('❌ ' + (res.error || 'Could not register.'), false);
+      }
+    } catch (err) {
+      showMsg('❌ Network error — check connection and try again.', false);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register';
+    }
+  });
+
+  async function loadRecent() {
+    const list = document.getElementById('recentList');
+    try {
+      const res = await AVS.get('getRecentMembers', { limit: 8 });
+      const items = res.recent || [];
+      if (!items.length) {
+        list.innerHTML = '<div class="recent-item"><span class="rmeta">No entries yet.</span></div>';
+        return;
+      }
+      list.innerHTML = items.map(m => `
+        <div class="recent-item">
+          <div>
+            <div class="rname">${m.Group} — ${m.Category} x${m.Count}</div>
+            <div class="rmeta">${m.Station || 'Desk —'}${m.Note ? ' · ' + m.Note : ''}</div>
+          </div>
+          <div class="rmeta">${new Date(m.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="recent-item"><span class="rmeta">Could not load recent activity.</span></div>';
+    }
+  }
+
+  loadRecent();
+  setInterval(loadRecent, 8000);
+</script>
+</body>
+</html>
