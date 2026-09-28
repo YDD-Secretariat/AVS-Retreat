@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Register Worker — AVS Retreat</title>
+<style>
+  :root{--accent:#7c3aed;--danger:#dc2626;--ok:#16a34a;--bg:#f8fafc;--border:#e2e8f0;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:#0f172a;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
+    display:flex;justify-content:space-between;align-items:center;}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
+  header h1{font-size:1.05rem;margin:0;}
+  .type-badge{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:0.68rem;
+    font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;letter-spacing:0.03em;}
+  main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
+
+  .station-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;
+    margin-bottom:16px;display:flex;gap:8px;align-items:center;}
+  .station-bar input{flex:1;border:none;font-size:0.95rem;background:transparent;outline:none;}
+  .station-bar label{font-size:0.8rem;color:#64748b;white-space:nowrap;}
+
+  .search-box{position:relative;margin-bottom:14px;}
+  .search-box input{width:100%;padding:16px 14px;border:1px solid var(--border);border-radius:12px;
+    font-size:1.1rem;background:#fff;}
+  .search-box input:focus{outline:2px solid var(--accent);border-color:transparent;}
+  .search-hint{color:#94a3b8;font-size:0.8rem;text-align:center;padding:10px 0;}
+
+  .results{display:flex;flex-direction:column;gap:8px;}
+  .result-item{background:#fff;border:1px solid var(--border);border-radius:12px;padding:14px;
+    display:flex;justify-content:space-between;align-items:center;cursor:pointer;}
+  .result-item:active{background:#f5f3ff;}
+  .result-item.done{opacity:0.55;}
+  .rmain .rn{font-weight:700;font-size:1rem;}
+  .rmain .rs{font-size:0.8rem;color:#64748b;margin-top:2px;}
+  .rmain .rp{font-size:0.75rem;color:#94a3b8;}
+  .badge{font-size:0.68rem;font-weight:700;padding:4px 9px;border-radius:20px;white-space:nowrap;}
+  .badge.new{background:#ede9fe;color:var(--accent);}
+  .badge.done{background:#dcfce7;color:#166534;}
+
+  .empty-hint{color:#94a3b8;font-size:0.85rem;text-align:center;padding:24px 0;}
+
+  /* Confirm bottom sheet */
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+    align-items:flex-end;justify-content:center;z-index:50;}
+  .overlay.show{display:flex;}
+  .sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:22px;}
+  .sheet h2{margin:0 0 4px;font-size:1.2rem;}
+  .sheet .station-line{color:#64748b;font-size:0.9rem;margin-bottom:14px;}
+  .detail-row{display:flex;justify-content:space-between;font-size:0.9rem;padding:8px 0;border-bottom:1px solid var(--border);}
+  .detail-row span:first-child{color:#64748b;}
+  .sheet-actions{display:flex;gap:10px;margin-top:16px;}
+  .sheet-actions button{flex:1;padding:15px;border:none;border-radius:12px;font-weight:700;font-size:1rem;cursor:pointer;}
+  .btn-secondary{background:#e2e8f0;color:#0f172a;}
+  .btn-confirm{background:var(--accent);color:#fff;}
+  .btn-confirm:disabled{opacity:0.6;}
+
+  .toast{position:fixed;bottom:20px;left:16px;right:16px;max-width:488px;margin:0 auto;
+    padding:14px 16px;border-radius:12px;font-size:0.9rem;font-weight:600;text-align:center;
+    box-shadow:0 8px 24px rgba(0,0,0,.2);display:none;z-index:60;}
+  .toast.ok{background:#16a34a;color:#fff;display:block;}
+  .toast.err{background:#dc2626;color:#fff;display:block;}
+  .toast.warn{background:#f59e0b;color:#fff;display:block;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Register Worker <span class="type-badge">INDIVIDUAL</span></h1>
+  <a href="index.html">Home</a>
+</header>
+<main>
+
+  <div class="station-bar">
+    <label for="station">Registered by:</label>
+    <input id="station" placeholder="e.g. Desk 2 – Sade" />
+  </div>
+
+  <div class="search-box">
+    <input id="searchInput" placeholder="🔍 Type a worker's name…" autofocus />
+  </div>
+
+  <div id="searchHint" class="search-hint">Start typing a name to search the worker roster.</div>
+  <div class="results" id="results"></div>
+
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="sheet" id="sheetContent"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+  const stationInput = document.getElementById('station');
+  stationInput.value = AVS.getStation();
+  stationInput.addEventListener('change', () => AVS.setStation(stationInput.value.trim()));
+
+  const searchInput = document.getElementById('searchInput');
+  const results = document.getElementById('results');
+  const searchHint = document.getElementById('searchHint');
+  let searchTimer = null;
+  let lastResults = [];
+
+  searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    const q = searchInput.value.trim();
+    if (q.length < 2) {
+      results.innerHTML = '';
+      searchHint.style.display = 'block';
+      searchHint.textContent = 'Start typing a name to search the worker roster.';
+      return;
+    }
+    searchHint.style.display = 'block';
+    searchHint.textContent = 'Searching…';
+    searchTimer = setTimeout(() => runSearch(q), 180); // debounce — keeps it snappy while typing
+  });
+
+  async function runSearch(q) {
+    try {
+      const res = await AVS.get('searchWorkers', { q });
+      if (res.error) {
+        searchHint.style.display = 'block';
+        searchHint.textContent = '⚠️ ' + res.error;
+        results.innerHTML = '';
+        return;
+      }
+      lastResults = res.workers || [];
+      renderResults(lastResults);
+    } catch (e) {
+      searchHint.style.display = 'block';
+      searchHint.textContent = '⚠️ Search failed — check connection.';
+    }
+  }
+
+  function renderResults(workers) {
+    if (!workers.length) {
+      results.innerHTML = '';
+      searchHint.style.display = 'block';
+      searchHint.textContent = 'No matching worker found in the roster.';
+      return;
+    }
+    searchHint.style.display = 'none';
+    results.innerHTML = workers.map((w, i) => `
+      <div class="result-item ${w.alreadyRegistered ? 'done' : ''}" data-idx="${i}">
+        <div class="rmain">
+          <div class="rn">${w.fullName}</div>
+          <div class="rs">${w.station || 'No station listed'}</div>
+          ${w.phone ? `<div class="rp">${w.phone}</div>` : ''}
+        </div>
+        <div class="badge ${w.alreadyRegistered ? 'done' : 'new'}">
+          ${w.alreadyRegistered ? '✓ Registered' : 'Tap to register'}
+        </div>
+      </div>
+    `).join('');
+    [...results.querySelectorAll('.result-item')].forEach(el => {
+      el.addEventListener('click', () => openConfirm(workers[parseInt(el.dataset.idx)]));
+    });
+  }
+
+  const overlay = document.getElementById('overlay');
+  const sheetContent = document.getElementById('sheetContent');
+
+  function openConfirm(worker) {
+    if (worker.alreadyRegistered) {
+      showToast(`${worker.fullName} was already registered at ${worker.registeredAt ? new Date(worker.registeredAt).toLocaleTimeString() : 'an earlier time'}.`, 'warn');
+      return;
+    }
+    sheetContent.innerHTML = `
+      <h2>${worker.fullName}</h2>
+      <div class="station-line">${worker.station || 'No station listed'}</div>
+      ${worker.phone ? `<div class="detail-row"><span>Phone</span><span>${worker.phone}</span></div>` : ''}
+      ${Object.entries(worker.otherDetails || {}).map(([k, v]) => `
+        <div class="detail-row"><span>${k}</span><span>${v}</span></div>
+      `).join('')}
+      <div class="sheet-actions">
+        <button class="btn-secondary" id="cancelConfirm">Cancel</button>
+        <button class="btn-confirm" id="confirmRegister">Confirm Register</button>
+      </div>
+    `;
+    overlay.classList.add('show');
+    document.getElementById('cancelConfirm').onclick = () => overlay.classList.remove('show');
+    document.getElementById('confirmRegister').onclick = () => submitRegistration(worker);
+  }
+
+  async function submitRegistration(worker) {
+    const btn = document.getElementById('confirmRegister');
+    btn.disabled = true;
+    btn.textContent = 'Registering…';
+    try {
+      const res = await AVS.post({
+        action: 'registerWorker',
+        rowId: worker.rowId,
+        submittedBy: stationInput.value.trim(),
+        station: stationInput.value.trim()
+      });
+      overlay.classList.remove('show');
+      if (res.success) {
+        showToast(`✅ ${res.fullName} registered.`, 'ok');
+        // Reflect immediately in the current result list without a re-search.
+        worker.alreadyRegistered = true;
+        renderResults(lastResults);
+        searchInput.value = '';
+        searchInput.focus();
+      } else if (res.duplicate) {
+        showToast(`⚠️ ${res.error}`, 'warn');
+        worker.alreadyRegistered = true;
+        renderResults(lastResults);
+      } else {
+        showToast('❌ ' + (res.error || 'Could not save this registration.'), 'err');
+      }
+    } catch (e) {
+      overlay.classList.remove('show');
+      showToast('❌ Network error — check connection and try again.', 'err');
+    }
+  }
+
+  const toast = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(text, type) {
+    clearTimeout(toastTimer);
+    toast.textContent = text;
+    toast.className = 'toast ' + type;
+    toastTimer = setTimeout(() => { toast.className = 'toast'; }, 3500);
+  }
+</script>
+</body>
+</html>
