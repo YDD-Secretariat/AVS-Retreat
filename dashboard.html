@@ -574,7 +574,18 @@
   }
 
   refresh();
-  setInterval(refresh, 6000);
+  let refreshTimer = setInterval(refresh, 9000);
+
+  // Pause polling when tab is not visible to prevent network congestion across multiple devices
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(refreshTimer);
+    } else {
+      refresh();
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(refresh, 9000);
+    }
+  });
 </script>
 </body>
 </html>
