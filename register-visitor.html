@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Register Visitors — October Rally 2026</title>
+<style>
+  :root{--accent:#0284c7;--accent-dark:#0369a1;--bg:#f8fafc;--border:#e2e8f0;--card:#ffffff;--text:#0f172a;}
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:var(--bg);color:var(--text);
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+  header{position:sticky;top:0;background:linear-gradient(135deg,#0284c7,#0369a1);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:20;
+    display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.95;font-weight:600;}
+  header h1{font-size:1.05rem;margin:0;display:flex;align-items:center;gap:6px;}
+  .type-badge{display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:0.68rem;
+    font-weight:700;padding:2px 8px;border-radius:20px;margin-left:4px;letter-spacing:0.03em;}
+
+  .quick-nav{background:#e0f2fe;border-bottom:1px solid #bae6fd;padding:8px 16px;display:flex;gap:8px;
+    overflow-x:auto;white-space:nowrap;font-size:0.8rem;}
+  .quick-nav a{color:#0369a1;text-decoration:none;font-weight:600;padding:4px 10px;border-radius:12px;background:#fff;}
+  .quick-nav a.active{background:#0284c7;color:#fff;}
+
+  main{max-width:480px;margin:0 auto;padding:16px;padding-bottom:60px;}
+  .hint{color:#64748b;font-size:0.88rem;margin:0 0 16px;line-height:1.4;}
+
+  .counts-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;}
+  .count-box{background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .count-box label{display:block;font-size:0.85rem;font-weight:700;color:#475569;margin-bottom:8px;}
+  .count-box input{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;
+    font-size:1.75rem;font-weight:800;text-align:center;background:#fff;}
+  .count-box input:focus{outline:none;border-color:var(--accent);background:#f0f9ff;}
+
+  .field{margin-bottom:18px;}
+  .field > label{display:block;font-size:0.82rem;color:#475569;margin-bottom:6px;font-weight:700;}
+
+  .notes-input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:0.95rem;background:#fff;font-family:inherit;}
+  .notes-input:focus{outline:2px solid var(--accent);border-color:transparent;}
+
+  .summary{background:#f0f9ff;border:1px solid #bae6fd;border-radius:12px;padding:14px 16px;font-size:1rem;color:#0369a1;
+    margin-bottom:16px;font-weight:700;text-align:center;display:flex;justify-content:space-between;align-items:center;}
+  .summary span.total-pill{background:#0284c7;color:#fff;padding:4px 14px;border-radius:20px;font-size:1.15rem;font-weight:800;}
+
+  button.submit{width:100%;padding:16px;border:none;border-radius:12px;background:linear-gradient(135deg,#0284c7,#0369a1);
+    color:#fff;font-size:1.08rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(2,132,199,0.25);
+    transition:transform 0.1s ease;}
+  button.submit:active{transform:scale(0.99);}
+  button.submit:disabled{opacity:0.6;cursor:not-allowed;}
+
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;font-weight:600;}
+  .msg.ok{background:#dcfce7;color:#166534;display:block;}
+  .msg.err{background:#fee2e2;color:#991b1b;display:block;}
+
+  .recent{margin-top:28px;}
+  .recent h3{font-size:0.9rem;color:#475569;margin-bottom:10px;display:flex;justify-content:space-between;}
+  .recent-item{background:#fff;border:1px solid var(--border);border-radius:10px;
+    padding:12px 14px;margin-bottom:8px;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 1px 2px rgba(0,0,0,0.03);}
+  .recent-item .rname{font-weight:700;color:#0f172a;}
+  .recent-item .rmeta{color:#64748b;font-size:0.78rem;margin-top:2px;}
+  .recent-item .count-badge{background:#e0f2fe;color:#0369a1;font-weight:800;padding:4px 10px;border-radius:20px;font-size:0.85rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1><span>👋</span> Register Visitors <span class="type-badge">VISITORS</span></h1>
+  <a href="index.html">Home</a>
+</header>
+
+<div class="quick-nav">
+  <a href="register.html">Schools</a>
+  <a href="register-members.html">Members (Bulk)</a>
+  <a href="register-worker.html">Individuals</a>
+  <a href="register-visitor.html" class="active">Visitors</a>
+  <a href="upload.html">Uploads</a>
+  <a href="dashboard.html">Dashboard</a>
+</div>
+
+<main>
+  <p class="hint">Record headcount of visitors by entering male and female numbers below.</p>
+
+  <form id="visitorForm">
+    <div class="counts-grid">
+      <div class="count-box">
+        <label for="maleCount">👨 Male Visitors</label>
+        <input id="maleCount" type="number" inputmode="numeric" min="0" placeholder="0" value="0" autofocus />
+      </div>
+      <div class="count-box">
+        <label for="femaleCount">👩 Female Visitors</label>
+        <input id="femaleCount" type="number" inputmode="numeric" min="0" placeholder="0" value="0" />
+      </div>
+    </div>
+
+    <div class="summary" id="summary">
+      <div>Total Visitors:</div>
+      <span class="total-pill" id="totalDisplay">0</span>
+    </div>
+
+    <div class="field">
+      <label for="notes">Notes / Location / Source (Optional)</label>
+      <input id="notes" class="notes-input" placeholder="e.g. Guests from Anthony / Invited" />
+    </div>
+
+    <button type="submit" class="submit" id="submitBtn">Register Visitors</button>
+    <div class="msg" id="msg"></div>
+  </form>
+
+  <div class="recent">
+    <h3>
+      <span>Recently registered visitors</span>
+      <span id="recentCountBadge" style="color:#0284c7;font-weight:700;"></span>
+    </h3>
+    <div id="recentList"><div class="recent-item"><span class="rmeta">Loading…</span></div></div>
+  </div>
+</main>
+
+<script src="config.js"></script>
+<script>
+  const maleInput = document.getElementById('maleCount');
+  const femaleInput = document.getElementById('femaleCount');
+  const totalDisplay = document.getElementById('totalDisplay');
+
+  function updateTotal() {
+    const male = parseInt(maleInput.value) || 0;
+    const female = parseInt(femaleInput.value) || 0;
+    const total = male + female;
+    totalDisplay.textContent = total;
+  }
+
+  maleInput.addEventListener('input', updateTotal);
+  femaleInput.addEventListener('input', updateTotal);
+
+  const form = document.getElementById('visitorForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
+
+  function showMsg(text, ok) {
+    msg.textContent = text;
+    msg.className = 'msg ' + (ok ? 'ok' : 'err');
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    msg.className = 'msg';
+    const male = parseInt(maleInput.value) || 0;
+    const female = parseInt(femaleInput.value) || 0;
+    const total = male + female;
+
+    if (total <= 0) {
+      return showMsg('❌ Please enter at least 1 male or female visitor.', false);
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Saving…';
+
+    const payload = {
+      action: 'registerVisitor',
+      category: 'Visitors',
+      male: male,
+      female: female,
+      total: total,
+      notes: document.getElementById('notes').value.trim(),
+      station: AVS.getStation() || ''
+    };
+
+    try {
+      const res = await AVS.post(payload);
+      if (res.success) {
+        if (res.queued) {
+          showMsg(`💾 Saved offline (${total} visitors: M:${male} / F:${female}) — Auto-sync pending.`, true);
+        } else {
+          showMsg(`✅ Registered ${total} visitor(s) (M:${male}, F:${female}).`, true);
+        }
+        maleInput.value = '0';
+        femaleInput.value = '0';
+        document.getElementById('notes').value = '';
+        updateTotal();
+        loadRecent();
+      } else {
+        showMsg('❌ ' + (res.error || 'Could not save visitor registration.'), false);
+      }
+    } catch (err) {
+      showMsg('❌ Network error — saved to local device queue.', true);
+      loadRecent();
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Register Visitors';
+    }
+  });
+
+  async function loadRecent() {
+    const list = document.getElementById('recentList');
+    try {
+      const res = await AVS.get('getRecentVisitors', { limit: 8 });
+      const items = res.recent || [];
+      if (!items.length) {
+        list.innerHTML = '<div class="recent-item"><span class="rmeta">No visitors registered yet.</span></div>';
+        return;
+      }
+      list.innerHTML = items.map(v => {
+        const m = v.Male ?? 0;
+        const f = v.Female ?? 0;
+        const tot = v.Total ?? (m + f);
+        return `
+          <div class="recent-item">
+            <div>
+              <div class="rname">${v.Notes ? v.Notes : 'Visitors'}</div>
+              <div class="rmeta">👨 M:${m} &nbsp;|&nbsp; 👩 F:${f} · ${v.RegisteredAt ? new Date(v.RegisteredAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Just now'}</div>
+            </div>
+            <div class="count-badge">${tot} Total</div>
+          </div>
+        `;
+      }).join('');
+    } catch (e) {
+      list.innerHTML = '<div class="recent-item"><span class="rmeta">Could not load recent visitors.</span></div>';
+    }
+  }
+
+  loadRecent();
+  setInterval(loadRecent, 8000);
+</script>
+</body>
+</html>
