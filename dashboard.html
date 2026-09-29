@@ -3,97 +3,256 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>AVS Retreat 2026 — Live Dashboard</title>
+<title>October Rally 2026 — Live Dashboard</title>
 <style>
-  :root{--accent:#4f46e5;--bg:#0b1220;--card:#111a2e;--border:#1e293b;--text:#e2e8f0;--muted:#94a3b8;}
+  :root{--accent:#4f46e5;--accent-light:#818cf8;--bg:#0b1220;--card:#111a2e;--card-alt:#162238;--border:#1e293b;--text:#e2e8f0;--muted:#94a3b8;}
   *{box-sizing:border-box;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
     background:var(--bg);color:var(--text);
     padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-  header{padding:20px 20px 8px;text-align:center;}
-  header h1{margin:0;font-size:1.4rem;}
+  
+  header{padding:16px 20px 10px;text-align:center;border-bottom:1px solid var(--border);
+    display:flex;flex-direction:column;align-items:center;position:relative;}
+  header h1{margin:0;font-size:1.35rem;display:flex;align-items:center;justify-content:center;gap:8px;}
   header p{color:var(--muted);margin:4px 0 0;font-size:0.85rem;}
-  #liveDot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;margin-right:6px;
+  #liveDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#22c55e;
     animation:pulse 1.6s infinite;}
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.3;transform:scale(0.85);}}
 
-  main{max-width:1000px;margin:0 auto;padding:16px 16px 60px;}
+  .quick-nav{background:#111a2e;border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;
+    justify-content:center;overflow-x:auto;white-space:nowrap;font-size:0.8rem;}
+  .quick-nav a{color:var(--muted);text-decoration:none;font-weight:600;padding:5px 12px;border-radius:12px;background:#1e293b;transition:all 0.15s;}
+  .quick-nav a:hover{color:#fff;}
+  .quick-nav a.active{background:var(--accent);color:#fff;}
 
+  main{max-width:1080px;margin:0 auto;padding:16px 16px 80px;}
+
+  /* Grand Total Hero Banner */
+  .grand-hero{background:linear-gradient(135deg,#312e81,#4338ca,#4f46e5);border-radius:20px;padding:24px;
+    margin-bottom:24px;box-shadow:0 12px 30px rgba(79,70,229,0.3);position:relative;overflow:hidden;}
+  .grand-hero::after{content:'';position:absolute;top:-50%;right:-20%;width:300px;height:300px;
+    background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);border-radius:50%;}
+  .grand-title{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;color:#c7d2fe;font-weight:700;}
+  .grand-value{font-size:3.2rem;font-weight:900;color:#ffffff;line-height:1.1;margin:6px 0 16px;}
+  
+  .grand-breakdown{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+  @media(min-width:640px){.grand-breakdown{grid-template-columns:repeat(4,1fr);}}
+  .grand-mini{background:rgba(0,0,0,0.22);backdrop-filter:blur(4px);padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);}
+  .grand-mini .num{font-size:1.35rem;font-weight:800;color:#fff;}
+  .grand-mini .lbl{font-size:0.72rem;color:#c7d2fe;text-transform:uppercase;font-weight:600;margin-top:2px;}
+
+  /* Gender bar */
+  .gender-bar{display:flex;height:16px;border-radius:10px;overflow:hidden;background:#1e293b;border:1px solid rgba(255,255,255,0.15);}
+  .gender-bar .male{background:#38bdf8;transition:width 0.4s ease;}
+  .gender-bar .female{background:#f472b6;transition:width 0.4s ease;}
+  .gender-legend{display:flex;justify-content:space-between;font-size:0.8rem;color:#e0e7ff;margin-top:6px;font-weight:600;}
+
+  /* Action buttons */
+  .export-bar{display:flex;gap:8px;flex-wrap:wrap;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .export-group{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn-action{background:var(--card);border:1px solid var(--border);color:#e2e8f0;font-size:0.8rem;font-weight:600;
+    padding:8px 14px;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s;}
+  .btn-action:hover{background:#1e293b;border-color:#475569;}
+  .btn-action.primary{background:#1e1b4b;border-color:var(--accent);color:#a5b4fc;}
+  .btn-action.primary:hover{background:var(--accent);color:#fff;}
+
+  /* Category grids */
   .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:24px;}
-  @media(min-width:640px){.stats-grid{grid-template-columns:repeat(3,1fr);}}
-  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:18px;text-align:center;}
-  .stat-card .value{font-size:1.9rem;font-weight:800;color:#fff;}
-  .stat-card .label{color:var(--muted);font-size:0.78rem;margin-top:4px;text-transform:uppercase;letter-spacing:0.03em;}
-  .stat-card.accent{background:linear-gradient(135deg,#4f46e5,#6366f1);border:none;}
-  .stat-card.accent .value, .stat-card.accent .label{color:#fff;}
+  @media(min-width:640px){.stats-grid{grid-template-columns:repeat(4,1fr);}}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;text-align:center;}
+  .stat-card .value{font-size:1.7rem;font-weight:800;color:#fff;}
+  .stat-card .label{color:var(--muted);font-size:0.75rem;margin-top:4px;text-transform:uppercase;letter-spacing:0.03em;}
+  .stat-card .sub-stat{font-size:0.72rem;color:#38bdf8;margin-top:4px;font-weight:600;}
 
-  .gender-bar{display:flex;height:14px;border-radius:8px;overflow:hidden;margin-top:10px;background:#1e293b;}
-  .gender-bar .male{background:#3b82f6;}
-  .gender-bar .female{background:#ec4899;}
-  .gender-legend{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-top:6px;}
+  .section-title{font-size:1.05rem;font-weight:800;margin:28px 0 12px;color:#fff;display:flex;align-items:center;justify-content:space-between;}
 
-  .section-title{font-size:1rem;font-weight:700;margin:24px 0 10px;color:#fff;}
-
-  .search-box input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);
-    background:var(--card);color:#fff;font-size:0.95rem;margin-bottom:12px;}
-
-  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden;}
-  th,td{padding:10px 12px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--border);}
-  th{color:var(--muted);text-transform:uppercase;font-size:0.7rem;letter-spacing:0.03em;}
-  tr:last-child td{border-bottom:none;}
-  tr:hover{background:#16213a;cursor:pointer;}
-  .empty-row td{text-align:center;color:var(--muted);padding:24px;}
-
-  .church-summary{display:flex;gap:12px;margin-bottom:12px;}
-  .church-summary .mini{flex:1;background:var(--card);border:1px solid var(--border);border-radius:12px;
-    padding:12px;text-align:center;}
-  .church-summary .mini .value{font-size:1.3rem;font-weight:800;color:#fff;}
-  .church-summary .mini .label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.03em;}
-  table.compact th, table.compact td{padding:8px 10px;font-size:0.82rem;}
-  table.compact td.num{text-align:center;font-weight:700;}
-  table.compact tr.total-row td{font-weight:800;color:#fff;border-top:2px solid var(--border);}
-
-  .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;
-    align-items:center;justify-content:center;padding:16px;z-index:50;}
-  .detail-overlay.show{display:flex;}
-  .detail-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;max-width:420px;width:100%;}
-  .detail-card h3{margin-top:0;color:#fff;}
-  .detail-row{display:flex;justify-content:space-between;font-size:0.88rem;padding:6px 0;border-bottom:1px solid var(--border);}
-  .detail-row span:first-child{color:var(--muted);}
-  .close-btn{margin-top:14px;width:100%;padding:12px;border:none;border-radius:10px;background:var(--accent);
-    color:#fff;font-weight:700;cursor:pointer;}
-
-  .type-badge{display:inline-block;font-size:0.62rem;font-weight:800;padding:2px 8px;border-radius:20px;
-    letter-spacing:0.03em;margin-left:8px;vertical-align:2px;}
+  .type-badge{display:inline-block;font-size:0.65rem;font-weight:800;padding:3px 9px;border-radius:20px;
+    letter-spacing:0.03em;vertical-align:middle;}
+  .badge-school{background:#e0e7ff;color:#4338ca;}
   .badge-bulk{background:#ccfbf1;color:#0d9488;}
   .badge-ind{background:#ede9fe;color:#7c3aed;}
+  .badge-vis{background:#e0f2fe;color:#0284c7;}
 
+  /* Tables */
+  table{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid var(--border);margin-bottom:16px;}
+  th,td{padding:11px 13px;text-align:left;font-size:0.85rem;border-bottom:1px solid var(--border);}
+  th{background:#162035;color:var(--muted);text-transform:uppercase;font-size:0.7rem;letter-spacing:0.04em;font-weight:700;}
+  tr:last-child td{border-bottom:none;}
+  tr.clickable:hover{background:#162544;cursor:pointer;}
+  td.num{text-align:center;font-weight:700;}
+  tr.total-row td{font-weight:800;color:#fff;background:#18233a;border-top:2px solid var(--border);}
+  .empty-row td{text-align:center;color:var(--muted);padding:24px;}
+
+  .search-box input{width:100%;padding:12px 14px;border-radius:10px;border:1px solid var(--border);
+    background:var(--card);color:#fff;font-size:0.95rem;margin-bottom:12px;outline:none;}
+  .search-box input:focus{border-color:var(--accent);}
+
+  /* Station list */
   .station-list{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  .station-row{display:flex;justify-content:space-between;padding:9px 14px;font-size:0.83rem;
-    border-bottom:1px solid var(--border);}
+  .station-row{display:flex;justify-content:space-between;padding:10px 14px;font-size:0.85rem;border-bottom:1px solid var(--border);}
   .station-row:last-child{border-bottom:none;}
   .station-row b{color:#fff;}
+
+  /* Detail modal */
+  .detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);display:none;
+    align-items:center;justify-content:center;padding:16px;z-index:100;}
+  .detail-overlay.show{display:flex;}
+  .detail-card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;max-width:440px;width:100%;}
+  .detail-card h3{margin-top:0;color:#fff;font-size:1.2rem;}
+  .detail-row{display:flex;justify-content:space-between;font-size:0.88rem;padding:7px 0;border-bottom:1px solid var(--border);}
+  .detail-row span:first-child{color:var(--muted);}
+  .close-btn{margin-top:16px;width:100%;padding:13px;border:none;border-radius:10px;background:var(--accent);
+    color:#fff;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
 <header>
-  <h1><span id="liveDot"></span>AVS Retreat 2026 — Live</h1>
-  <p>October 1st · Anthony, Lagos · Updated <span id="lastUpdated">—</span></p>
+  <h1><span id="liveDot"></span>October Rally 2026 — Live Dashboard</h1>
+  <p>Anthony, Lagos · Last updated: <span id="lastUpdated">—</span></p>
 </header>
 
+<div class="quick-nav">
+  <a href="register.html">Schools</a>
+  <a href="register-members.html">Members (Bulk)</a>
+  <a href="register-worker.html">Individuals</a>
+  <a href="register-visitor.html">Visitors</a>
+  <a href="upload.html">Uploads</a>
+  <a href="dashboard.html" class="active">Dashboard</a>
+</div>
+
 <main>
+
+  <!-- Grand Total Summary Hero -->
+  <div class="grand-hero">
+    <div class="grand-title">🌟 Grand Total Attendance (All Channels)</div>
+    <div class="grand-value" id="grandTotal">0</div>
+
+    <div class="grand-breakdown">
+      <div class="grand-mini">
+        <div class="num" id="grandStudents">0</div>
+        <div class="lbl">Students (Schools)</div>
+      </div>
+      <div class="grand-mini">
+        <div class="num" id="grandMembers">0</div>
+        <div class="lbl">Bulk Members</div>
+      </div>
+      <div class="grand-mini">
+        <div class="num" id="grandWorkers">0</div>
+        <div class="lbl">Individuals / Roster</div>
+      </div>
+      <div class="grand-mini">
+        <div class="num" id="grandVisitors">0</div>
+        <div class="lbl">Visitors & Guests</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="gender-bar">
+        <div class="male" id="grandBarMale" style="width:50%"></div>
+        <div class="female" id="grandBarFemale" style="width:50%"></div>
+      </div>
+      <div class="gender-legend">
+        <span id="grandLegendMale">👨 Male: 0 (0%)</span>
+        <span id="grandLegendFemale">👩 Female: 0 (0%)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Export Bar -->
+  <div class="export-bar">
+    <div style="font-size:0.85rem;font-weight:700;color:var(--muted);">Data Actions & Backups:</div>
+    <div class="export-group">
+      <button class="btn-action primary" onclick="exportFullSummaryCSV()">📊 Full Summary CSV</button>
+      <button class="btn-action" onclick="exportSchoolsCSV()">📝 Schools CSV</button>
+      <button class="btn-action" onclick="exportMembersCSV()">🙋 Members CSV</button>
+      <button class="btn-action" onclick="exportVisitorsCSV()">👋 Visitors CSV</button>
+    </div>
+  </div>
+
+  <!-- Visitors Section -->
+  <div class="section-title">
+    <span>Visitors & Guests <span class="type-badge badge-vis">VISITORS</span></span>
+    <span id="visitorTotalBadge" style="font-size:0.9rem;color:#38bdf8;font-weight:700;">0 Total</span>
+  </div>
+  <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="stat-card">
+      <div class="value" id="visTotal">0</div>
+      <div class="label">Total Visitors</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="visMale">0</div>
+      <div class="label">👨 Male Visitors</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="visFemale">0</div>
+      <div class="label">👩 Female Visitors</div>
+    </div>
+  </div>
+
+  <table class="compact">
+    <thead>
+      <tr><th>Time / Source</th><th>Male</th><th>Female</th><th>Total Headcount</th><th>Notes</th></tr>
+    </thead>
+    <tbody id="visitorTableBody">
+      <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Bulk Members Section -->
+  <div class="section-title">
+    <span>Members (Bulk Groups) <span class="type-badge badge-bulk">BULK</span></span>
+    <span id="bulkTotalBadge" style="font-size:0.9rem;color:#2dd4bf;font-weight:700;">0 Total</span>
+  </div>
   <div class="stats-grid">
-    <div class="stat-card accent">
+    <div class="stat-card">
+      <div class="value" id="bulkTotal">0</div>
+      <div class="label">Total Members</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="bulkMale">0</div>
+      <div class="label">Male Members</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="bulkFemale">0</div>
+      <div class="label">Female Members</div>
+    </div>
+    <div class="stat-card">
+      <div class="value" id="bulkGroupsCount">5</div>
+      <div class="label">Active Groups</div>
+    </div>
+  </div>
+
+  <table class="compact">
+    <thead>
+      <tr><th>Group</th><th>Male</th><th>Female</th><th>Total Headcount</th></tr>
+    </thead>
+    <tbody id="bulkTableBody">
+      <tr class="empty-row"><td colspan="4">Loading…</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Individuals / Workers Section -->
+  <div class="section-title">
+    <span>Individually Registered <span class="type-badge badge-ind">INDIVIDUAL</span></span>
+    <span id="workerTotalBadge" style="font-size:0.9rem;color:#c084fc;font-weight:700;">0 Checked-in</span>
+  </div>
+  <div class="station-list" id="workerStationList">
+    <div class="station-row"><span style="color:var(--muted);">Loading…</span></div>
+  </div>
+
+  <!-- Schools Section -->
+  <div class="section-title" style="margin-top:32px;">
+    <span>Schools Registered <span class="type-badge badge-school">SCHOOLS</span></span>
+    <span id="schoolTotalBadge" style="font-size:0.9rem;color:#818cf8;font-weight:700;">0 Schools</span>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card">
       <div class="value" id="statTotalStudents">0</div>
       <div class="label">Total Students</div>
     </div>
     <div class="stat-card">
       <div class="value" id="statSchools">0</div>
-      <div class="label">Schools Registered</div>
-    </div>
-    <div class="stat-card">
-      <div class="value" id="statCoordinators">0</div>
-      <div class="label">Coordinators</div>
+      <div class="label">Schools</div>
     </div>
     <div class="stat-card">
       <div class="value" id="statMale">0</div>
@@ -103,122 +262,193 @@
       <div class="value" id="statFemale">0</div>
       <div class="label">Female Students</div>
     </div>
-    <div class="stat-card">
-      <div class="value" id="statAvg">0</div>
-      <div class="label">Avg. per School</div>
-    </div>
   </div>
 
-  <div class="stat-card" style="margin-bottom:24px;">
-    <div class="label" style="margin-bottom:4px;">Gender Split</div>
-    <div class="gender-bar"><div class="male" id="barMale" style="width:50%"></div><div class="female" id="barFemale" style="width:50%"></div></div>
-    <div class="gender-legend"><span id="legendMale">Male —</span><span id="legendFemale">Female —</span></div>
-  </div>
-
-  <div class="section-title">Members <span class="type-badge badge-bulk">BULK</span></div>
-  <div class="church-summary">
-    <div class="mini"><div class="value" id="bulkTotal">0</div><div class="label">Total Members</div></div>
-  </div>
-  <table class="compact">
-    <thead><tr><th>Group</th><th>Members</th></tr></thead>
-    <tbody id="bulkTableBody">
-      <tr class="empty-row"><td colspan="2">Loading…</td></tr>
-    </tbody>
-  </table>
-
-  <div class="section-title">Individually Registered <span class="type-badge badge-ind">INDIVIDUAL</span></div>
-  <div class="church-summary">
-    <div class="mini"><div class="value" id="workerTotal">0</div><div class="label">Registered Individually</div></div>
-  </div>
-  <div class="station-list" id="workerStationList">
-    <div class="station-row"><span style="color:var(--muted);">Loading…</span></div>
-  </div>
-
-  <div class="section-title">Schools</div>
   <div class="search-box">
-    <input id="tableSearch" placeholder="Search a school…" />
+    <input id="tableSearch" placeholder="🔍 Search school name, location, or coordinator…" />
   </div>
   <table>
     <thead>
-      <tr><th>School</th><th>Male</th><th>Female</th><th>Total</th><th>Time</th></tr>
+      <tr><th>School</th><th>Location</th><th>Male</th><th>Female</th><th>Total</th><th>Station</th><th>Time</th></tr>
     </thead>
     <tbody id="tableBody">
-      <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+      <tr class="empty-row"><td colspan="7">Loading…</td></tr>
     </tbody>
   </table>
+
 </main>
 
+<!-- Detail Modal -->
 <div class="detail-overlay" id="detailOverlay">
   <div class="detail-card" id="detailCard"></div>
 </div>
 
 <script src="config.js"></script>
 <script>
-  let allSchools = [];
+  let cachedData = {
+    schools: [],
+    stats: {},
+    bulk: {},
+    workers: {},
+    visitors: {}
+  };
 
-  function renderStats(stats) {
-    document.getElementById('statTotalStudents').textContent = stats.totalStudents;
-    document.getElementById('statSchools').textContent = stats.totalSchools;
-    document.getElementById('statCoordinators').textContent = stats.totalCoordinators;
-    document.getElementById('statMale').textContent = stats.totalMale;
-    document.getElementById('statFemale').textContent = stats.totalFemale;
-    document.getElementById('statAvg').textContent = stats.totalSchools
-      ? Math.round(stats.totalStudents / stats.totalSchools) : 0;
+  function updateGrandTotal() {
+    const students = parseInt(cachedData.stats.totalStudents) || 0;
+    const members = parseInt(cachedData.bulk.totalMembers) || 0;
+    const workers = parseInt(cachedData.workers.totalRegisteredWorkers) || 0;
+    const visitors = parseInt(cachedData.visitors.totalVisitors) || 0;
+    
+    const grand = students + members + workers + visitors;
+    document.getElementById('grandTotal').textContent = grand.toLocaleString();
+    document.getElementById('grandStudents').textContent = students.toLocaleString();
+    document.getElementById('grandMembers').textContent = members.toLocaleString();
+    document.getElementById('grandWorkers').textContent = workers.toLocaleString();
+    document.getElementById('grandVisitors').textContent = visitors.toLocaleString();
 
-    const total = stats.totalMale + stats.totalFemale || 1;
-    const malePct = Math.round((stats.totalMale / total) * 100);
-    document.getElementById('barMale').style.width = malePct + '%';
-    document.getElementById('barFemale').style.width = (100 - malePct) + '%';
-    document.getElementById('legendMale').textContent = `Male ${stats.totalMale} (${malePct}%)`;
-    document.getElementById('legendFemale').textContent = `Female ${stats.totalFemale} (${100 - malePct}%)`;
+    // Grand gender breakdown
+    const sMale = parseInt(cachedData.stats.totalMale) || 0;
+    const sFem = parseInt(cachedData.stats.totalFemale) || 0;
+    const bMale = parseInt(cachedData.bulk.totalMale) || 0;
+    const bFem = parseInt(cachedData.bulk.totalFemale) || 0;
+    const vMale = parseInt(cachedData.visitors.totalMale) || 0;
+    const vFem = parseInt(cachedData.visitors.totalFemale) || 0;
+
+    const totMale = sMale + bMale + vMale;
+    const totFemale = sFem + bFem + vFem;
+    const totalGendered = totMale + totFemale || 1;
+
+    const malePct = Math.round((totMale / totalGendered) * 100);
+    document.getElementById('grandBarMale').style.width = malePct + '%';
+    document.getElementById('grandBarFemale').style.width = (100 - malePct) + '%';
+    document.getElementById('grandLegendMale').textContent = `👨 Male: ${totMale.toLocaleString()} (${malePct}%)`;
+    document.getElementById('grandLegendFemale').textContent = `👩 Female: ${totFemale.toLocaleString()} (${100 - malePct}%)`;
   }
 
-  function renderBulkStats(stats) {
-    document.getElementById('bulkTotal').textContent = stats.totalMembers;
+  function renderStats(stats) {
+    cachedData.stats = stats || {};
+    document.getElementById('statTotalStudents').textContent = stats.totalStudents || 0;
+    document.getElementById('statSchools').textContent = stats.totalSchools || 0;
+    document.getElementById('statMale').textContent = stats.totalMale || 0;
+    document.getElementById('statFemale').textContent = stats.totalFemale || 0;
+    document.getElementById('schoolTotalBadge').textContent = `${stats.totalSchools || 0} Schools (${stats.totalStudents || 0} Students)`;
+    updateGrandTotal();
+  }
+
+  function renderBulkStats(bulk) {
+    cachedData.bulk = bulk || {};
+    document.getElementById('bulkTotal').textContent = bulk.totalMembers || 0;
+    document.getElementById('bulkMale').textContent = bulk.totalMale || 0;
+    document.getElementById('bulkFemale').textContent = bulk.totalFemale || 0;
+    document.getElementById('bulkTotalBadge').textContent = `${bulk.totalMembers || 0} Members`;
+
     const tbody = document.getElementById('bulkTableBody');
-    const groups = stats.groups || [];
-    if (!groups.some(g => g.count > 0)) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="2">No members registered yet.</td></tr>';
+    const groups = bulk.groups || [];
+    if (!groups.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="4">No members registered yet.</td></tr>';
       return;
     }
     const rows = groups.map(g => `
-      <tr><td>${g.group}</td><td class="num">${g.count}</td></tr>
+      <tr>
+        <td><b>${g.group}</b></td>
+        <td class="num">${g.male || 0}</td>
+        <td class="num">${g.female || 0}</td>
+        <td class="num"><b>${g.count || 0}</b></td>
+      </tr>
     `).join('');
     tbody.innerHTML = rows + `
-      <tr class="total-row"><td>Total</td><td class="num">${stats.totalMembers}</td></tr>
+      <tr class="total-row">
+        <td>Total Bulk Members</td>
+        <td class="num">${bulk.totalMale || 0}</td>
+        <td class="num">${bulk.totalFemale || 0}</td>
+        <td class="num">${bulk.totalMembers || 0}</td>
+      </tr>
     `;
+    updateGrandTotal();
   }
 
-  function renderWorkerStats(stats) {
-    document.getElementById('workerTotal').textContent = stats.totalRegisteredWorkers;
+  function renderVisitorStats(vis) {
+    cachedData.visitors = vis || {};
+    const total = vis.totalVisitors || 0;
+    const male = vis.totalMale || 0;
+    const female = vis.totalFemale || 0;
+
+    document.getElementById('visTotal').textContent = total;
+    document.getElementById('visMale').textContent = male;
+    document.getElementById('visFemale').textContent = female;
+    document.getElementById('visitorTotalBadge').textContent = `${total} Visitors`;
+
+    const tbody = document.getElementById('visitorTableBody');
+    const visitorsList = vis.visitors || [];
+    if (!visitorsList.length && !total) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No visitors registered yet.</td></tr>';
+      updateGrandTotal();
+      return;
+    }
+
+    const rows = visitorsList.map(v => {
+      const m = parseInt(v.Male) || 0;
+      const f = parseInt(v.Female) || 0;
+      const tot = parseInt(v.Total) || (m + f);
+      const timeStr = v.RegisteredAt ? new Date(v.RegisteredAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : 'Today';
+      return `
+        <tr>
+          <td>${timeStr}</td>
+          <td class="num">${m}</td>
+          <td class="num">${f}</td>
+          <td class="num"><b>${tot}</b></td>
+          <td>${v.Notes || '<span style="color:var(--muted)">—</span>'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    tbody.innerHTML = rows + `
+      <tr class="total-row">
+        <td>Total Visitors</td>
+        <td class="num">${male}</td>
+        <td class="num">${female}</td>
+        <td class="num">${total}</td>
+        <td></td>
+      </tr>
+    `;
+    updateGrandTotal();
+  }
+
+  function renderWorkerStats(workers) {
+    cachedData.workers = workers || {};
+    document.getElementById('workerTotalBadge').textContent = `${workers.totalRegisteredWorkers || 0} Checked-in`;
     const list = document.getElementById('workerStationList');
-    const stations = stats.byStation || [];
+    const stations = workers.byStation || [];
     if (!stations.length) {
-      list.innerHTML = '<div class="station-row"><span style="color:var(--muted);">No one registered individually yet.</span></div>';
+      list.innerHTML = '<div class="station-row"><span style="color:var(--muted);">No individuals registered yet.</span></div>';
       return;
     }
     list.innerHTML = stations.map(s => `
       <div class="station-row"><span>${s.station}</span><b>${s.count}</b></div>
     `).join('');
+    updateGrandTotal();
   }
 
   function renderTable(schools) {
+    cachedData.schools = schools || [];
     const tbody = document.getElementById('tableBody');
     if (!schools.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">No schools registered yet.</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No schools registered yet.</td></tr>';
       return;
     }
-    const sorted = schools.slice().sort((a,b) => new Date(b.Timestamp) - new Date(a.Timestamp));
+    const sorted = schools.slice().sort((a,b) => new Date(b.Timestamp || 0) - new Date(a.Timestamp || 0));
     tbody.innerHTML = sorted.map((s, i) => `
-      <tr data-idx="${schools.indexOf(s)}">
-        <td>${s.SchoolName}</td>
-        <td>${s.Male}</td>
-        <td>${s.Female}</td>
-        <td><b>${s.Total}</b></td>
-        <td>${new Date(s.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</td>
+      <tr class="clickable" data-idx="${schools.indexOf(s)}">
+        <td><b>${s.SchoolName}</b></td>
+        <td>${s.Location || '—'}</td>
+        <td class="num">${s.Male || 0}</td>
+        <td class="num">${s.Female || 0}</td>
+        <td class="num"><b>${s.Total || 0}</b></td>
+        <td>${s.Station || '—'}</td>
+        <td>${s.Timestamp ? new Date(s.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'}</td>
       </tr>
     `).join('');
-    [...tbody.querySelectorAll('tr[data-idx]')].forEach(row => {
+    [...tbody.querySelectorAll('tr.clickable')].forEach(row => {
       row.addEventListener('click', () => showDetail(schools[parseInt(row.dataset.idx)]));
     });
   }
@@ -229,12 +459,12 @@
       <div class="detail-row"><span>Location</span><span>${s.Location || '—'}</span></div>
       <div class="detail-row"><span>Coordinator</span><span>${s.CoordinatorName || '—'}</span></div>
       <div class="detail-row"><span>Phone</span><span>${s.CoordinatorPhone || '—'}</span></div>
-      <div class="detail-row"><span>Male</span><span>${s.Male}</span></div>
-      <div class="detail-row"><span>Female</span><span>${s.Female}</span></div>
-      <div class="detail-row"><span>Total</span><span><b>${s.Total}</b></span></div>
+      <div class="detail-row"><span>Male Students</span><span>${s.Male || 0}</span></div>
+      <div class="detail-row"><span>Female Students</span><span>${s.Female || 0}</span></div>
+      <div class="detail-row"><span>Total Students</span><span><b>${s.Total || 0}</b></span></div>
       <div class="detail-row"><span>Station</span><span>${s.Station || '—'}</span></div>
-      <div class="detail-row"><span>Time</span><span>${new Date(s.Timestamp).toLocaleString()}</span></div>
-      <div class="detail-row"><span>Photos</span><span>${s.PhotoCount || 0}${s.PhotoFolderUrl ? ` — <a href="${s.PhotoFolderUrl}" target="_blank" style="color:#818cf8;">view</a>` : ''}</span></div>
+      <div class="detail-row"><span>Registered Time</span><span>${s.Timestamp ? new Date(s.Timestamp).toLocaleString() : '—'}</span></div>
+      <div class="detail-row"><span>Photos Uploaded</span><span>${s.PhotoCount || 0}</span></div>
       <button class="close-btn" id="closeDetail">Close</button>
     `;
     document.getElementById('detailOverlay').classList.add('show');
@@ -244,31 +474,118 @@
 
   document.getElementById('tableSearch').addEventListener('input', (e) => {
     const q = e.target.value.trim().toLowerCase();
-    const filtered = q ? allSchools.filter(s => String(s.SchoolName).toLowerCase().includes(q)) : allSchools;
+    const schools = cachedData.schools || [];
+    const filtered = q ? schools.filter(s => 
+      String(s.SchoolName || '').toLowerCase().includes(q) ||
+      String(s.Location || '').toLowerCase().includes(q) ||
+      String(s.CoordinatorName || '').toLowerCase().includes(q)
+    ) : schools;
     renderTable(filtered);
   });
 
   async function refresh() {
     try {
-      const [statsRes, schoolsRes, bulkRes, workerRes] = await Promise.all([
+      const [statsRes, schoolsRes, bulkRes, workerRes, visRes] = await Promise.all([
         AVS.get('getStats'),
         AVS.get('getSchools'),
         AVS.get('getBulkStats'),
-        AVS.get('getWorkerStats')
+        AVS.get('getWorkerStats'),
+        AVS.get('getVisitorStats')
       ]);
       renderStats(statsRes);
-      allSchools = schoolsRes.schools || [];
-      renderTable(allSchools);
+      renderTable(schoolsRes.schools || []);
       renderBulkStats(bulkRes);
       renderWorkerStats(workerRes);
+      renderVisitorStats(visRes);
       document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
     } catch (e) {
-      document.getElementById('lastUpdated').textContent = 'connection error';
+      document.getElementById('lastUpdated').textContent = 'Cached (Offline)';
     }
   }
 
+  // --- CSV Export Utilities ---
+  function downloadCSV(filename, content) {
+    const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function exportFullSummaryCSV() {
+    const lines = [
+      ["OCTOBER RALLY 2026 - EVENT ATTENDANCE REPORT"],
+      ["Generated At", new Date().toLocaleString()],
+      [],
+      ["CATEGORY", "MALE", "FEMALE", "TOTAL"],
+      ["Students (Schools)", cachedData.stats.totalMale || 0, cachedData.stats.totalFemale || 0, cachedData.stats.totalStudents || 0],
+      ["Bulk Members", cachedData.bulk.totalMale || 0, cachedData.bulk.totalFemale || 0, cachedData.bulk.totalMembers || 0],
+      ["Visitors & Guests", cachedData.visitors.totalMale || 0, cachedData.visitors.totalFemale || 0, cachedData.visitors.totalVisitors || 0],
+      ["Individuals / Roster", "—", "—", cachedData.workers.totalRegisteredWorkers || 0],
+      [],
+      ["GRAND TOTAL ATTENDANCE", "", "", (parseInt(cachedData.stats.totalStudents) || 0) + (parseInt(cachedData.bulk.totalMembers) || 0) + (parseInt(cachedData.visitors.totalVisitors) || 0) + (parseInt(cachedData.workers.totalRegisteredWorkers) || 0)]
+    ];
+    const csv = lines.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    downloadCSV(`October_Rally_Summary_${new Date().toISOString().slice(0,10)}.csv`, csv);
+  }
+
+  function exportSchoolsCSV() {
+    const schools = cachedData.schools || [];
+    const headers = ["School Name", "Location", "Coordinator Name", "Coordinator Phone", "Male", "Female", "Total", "Station", "Timestamp"];
+    const rows = schools.map(s => [
+      s.SchoolName || "",
+      s.Location || "",
+      s.CoordinatorName || "",
+      s.CoordinatorPhone || "",
+      s.Male || 0,
+      s.Female || 0,
+      s.Total || 0,
+      s.Station || "",
+      s.Timestamp || ""
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    downloadCSV(`October_Rally_Schools_${new Date().toISOString().slice(0,10)}.csv`, csv);
+  }
+
+  function exportMembersCSV() {
+    const groups = cachedData.bulk.groups || [];
+    const headers = ["Group", "Male", "Female", "Total Headcount"];
+    const rows = groups.map(g => [g.group, g.male || 0, g.female || 0, g.count || 0]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    downloadCSV(`October_Rally_Members_Bulk_${new Date().toISOString().slice(0,10)}.csv`, csv);
+  }
+
+  function exportVisitorsCSV() {
+    const visitors = (cachedData.visitors && cachedData.visitors.visitors) || [];
+    const headers = ["Category", "Male", "Female", "Total", "Notes", "Station", "RegisteredAt"];
+    const rows = visitors.map(v => [
+      v.Category || "Visitor",
+      v.Male || 0,
+      v.Female || 0,
+      v.Total || ((v.Male||0)+(v.Female||0)),
+      v.Notes || "",
+      v.Station || "",
+      v.RegisteredAt || ""
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    downloadCSV(`October_Rally_Visitors_${new Date().toISOString().slice(0,10)}.csv`, csv);
+  }
+
   refresh();
-  setInterval(refresh, 6000);
+  let refreshTimer = setInterval(refresh, 9000);
+
+  // Pause polling when tab is not visible to prevent network congestion across multiple devices
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      clearInterval(refreshTimer);
+    } else {
+      refresh();
+      clearInterval(refreshTimer);
+      refreshTimer = setInterval(refresh, 9000);
+    }
+  });
 </script>
 </body>
 </html>

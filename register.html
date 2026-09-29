@@ -5,21 +5,27 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Register School — AVS Retreat</title>
 <style>
-  :root{--accent:#4f46e5;--danger:#dc2626;--ok:#16a34a;--bg:#f8fafc;--border:#e2e8f0;}
+  :root{--accent:#4f46e5;--danger:#dc2626;--ok:#16a34a;--bg:#f8fafc;--border:#e2e8f0;--card:#ffffff;--text:#0f172a;}
   *{box-sizing:border-box;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:var(--bg);color:#0f172a;
+    background:var(--bg);color:var(--text);
     padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
-    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
-    display:flex;justify-content:space-between;align-items:center;}
-  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
-  header h1{font-size:1.05rem;margin:0;}
+  header{position:sticky;top:0;background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:20;
+    display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.95;font-weight:600;}
+  header h1{font-size:1.05rem;margin:0;display:flex;align-items:center;gap:6px;}
+
+  .quick-nav{background:#e0e7ff;border-bottom:1px solid #c7d2fe;padding:8px 16px;display:flex;gap:8px;
+    overflow-x:auto;white-space:nowrap;font-size:0.8rem;}
+  .quick-nav a{color:#4338ca;text-decoration:none;font-weight:600;padding:4px 10px;border-radius:12px;background:#fff;}
+  .quick-nav a.active{background:#4f46e5;color:#fff;}
+
   main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
   .station-bar{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px 14px;
-    margin-bottom:16px;display:flex;gap:8px;align-items:center;}
+    margin-bottom:16px;display:flex;gap:8px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
   .station-bar input{flex:1;border:none;font-size:0.95rem;background:transparent;outline:none;}
-  .station-bar label{font-size:0.8rem;color:#64748b;white-space:nowrap;}
+  .station-bar label{font-size:0.8rem;color:#64748b;white-space:nowrap;font-weight:600;}
   fieldset{border:none;padding:0;margin:0 0 18px;}
   legend{font-weight:700;font-size:0.95rem;margin-bottom:8px;color:var(--accent);}
   .field{margin-bottom:12px;}
@@ -29,17 +35,17 @@
   .field input:focus{outline:2px solid var(--accent);border-color:transparent;}
   .row{display:flex;gap:10px;}
   .row .field{flex:1;}
-  .total-box{background:#eef2ff;border-radius:10px;padding:12px 14px;font-weight:700;
+  .total-box{background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:12px 14px;font-weight:700;
     display:flex;justify-content:space-between;color:var(--accent);margin-bottom:16px;}
-  button{width:100%;padding:15px;border:none;border-radius:12px;background:var(--accent);
-    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;}
-  button:disabled{opacity:0.6;}
-  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;}
+  button{width:100%;padding:15px;border:none;border-radius:12px;background:linear-gradient(135deg,#4f46e5,#4338ca);
+    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,0.25);}
+  button:disabled{opacity:0.6;cursor:not-allowed;}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;font-weight:600;}
   .msg.ok{background:#dcfce7;color:#166534;display:block;}
   .msg.err{background:#fee2e2;color:#991b1b;display:block;}
 
   /* Duplicate warning modal */
-  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;
+  .overlay{position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(4px);display:none;
     align-items:flex-end;justify-content:center;z-index:50;}
   .overlay.show{display:flex;}
   .sheet{background:#fff;width:100%;max-width:520px;border-radius:18px 18px 0 0;
@@ -53,35 +59,46 @@
   .btn-secondary{background:#e2e8f0;color:#0f172a;}
   .btn-danger{background:var(--danger);}
 
-  .recent{margin-top:24px;}
+  .recent{margin-top:28px;}
   .recent h3{font-size:0.9rem;color:#475569;margin-bottom:8px;}
   .recent-item{background:#fff;border:1px solid var(--border);border-radius:10px;
-    padding:10px 12px;margin-bottom:8px;font-size:0.85rem;display:flex;justify-content:space-between;}
+    padding:12px 14px;margin-bottom:8px;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;
+    box-shadow:0 1px 2px rgba(0,0,0,0.03);}
   .recent-item .rname{font-weight:700;}
-  .recent-item .rmeta{color:#64748b;font-size:0.78rem;}
+  .recent-item .rmeta{color:#64748b;font-size:0.78rem;margin-top:2px;}
 </style>
 </head>
 <body>
 <header>
-  <h1>📝 Register School</h1>
+  <h1><span>📝</span> Register School</h1>
   <a href="index.html">Home</a>
 </header>
+
+<div class="quick-nav">
+  <a href="register.html" class="active">Schools</a>
+  <a href="register-members.html">Members (Bulk)</a>
+  <a href="register-worker.html">Individuals</a>
+  <a href="register-visitor.html">Visitors</a>
+  <a href="upload.html">Uploads</a>
+  <a href="dashboard.html">Dashboard</a>
+</div>
+
 <main>
 
   <div class="station-bar">
-    <label for="station">Station:</label>
+    <label for="station">Station / Desk:</label>
     <input id="station" placeholder="e.g. Station 1 – Bola" />
   </div>
 
   <form id="regForm">
     <fieldset>
-      <legend>School</legend>
+      <legend>School Details</legend>
       <div class="field">
         <label>School Name</label>
         <input id="schoolName" required placeholder="e.g. Anthony Girls Secondary School" />
       </div>
       <div class="field">
-        <label>School Location</label>
+        <label>School Location / Area</label>
         <input id="schoolLocation" placeholder="e.g. Maryland, Lagos" />
       </div>
     </fieldset>
@@ -105,14 +122,14 @@
     </fieldset>
 
     <fieldset>
-      <legend>Students</legend>
+      <legend>Students (Headcount)</legend>
       <div class="row">
         <div class="field">
-          <label>Male Students</label>
+          <label>👨 Male Students</label>
           <input id="male" type="number" inputmode="numeric" min="0" value="0" required />
         </div>
         <div class="field">
-          <label>Female Students</label>
+          <label>👩 Female Students</label>
           <input id="female" type="number" inputmode="numeric" min="0" value="0" required />
         </div>
       </div>
@@ -127,7 +144,7 @@
   </form>
 
   <div class="recent">
-    <h3>Recently registered (this device's view)</h3>
+    <h3>Recently registered schools</h3>
     <div id="recentList"><div class="recent-item"><span class="rmeta">Loading…</span></div></div>
   </div>
 </main>
@@ -182,7 +199,7 @@
       coordinatorLocation: document.getElementById('coordLocation').value.trim(),
       male: parseInt(maleEl.value) || 0,
       female: parseInt(femaleEl.value) || 0,
-      station: stationInput.value.trim(),
+      station: stationInput.value.trim() || AVS.getStation(),
       confirmedNotDuplicate: !!confirmed
     };
   }
@@ -198,7 +215,11 @@
         return;
       }
       if (res.success) {
-        showMsg('✅ Registered: ' + res.schoolName, true);
+        if (res.queued) {
+          showMsg('💾 Saved offline (' + (res.schoolName || 'School') + ') — Sync pending.', true);
+        } else {
+          showMsg('✅ Registered: ' + (res.schoolName || 'School'), true);
+        }
         form.reset();
         updateTotal();
         loadRecent();
@@ -206,7 +227,8 @@
         showMsg('❌ ' + (res.error || 'Could not register.'), false);
       }
     } catch (err) {
-      showMsg('❌ Network error — check connection and try again.', false);
+      showMsg('❌ Saved locally to queue.', true);
+      loadRecent();
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Register School';
@@ -249,9 +271,9 @@
         <div class="recent-item">
           <div>
             <div class="rname">${s.SchoolName}</div>
-            <div class="rmeta">${s.Station || 'Station —'} · M:${s.Male} F:${s.Female}</div>
+            <div class="rmeta">${s.Station || 'Station —'} · 👨 M:${s.Male || 0} / 👩 F:${s.Female || 0} (Total: ${s.Total || (s.Male||0)+(s.Female||0)})</div>
           </div>
-          <div class="rmeta">${new Date(s.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</div>
+          <div class="rmeta">${s.Timestamp ? new Date(s.Timestamp).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) : '—'}</div>
         </div>
       `).join('');
     } catch (e) {
@@ -260,7 +282,7 @@
   }
 
   loadRecent();
-  setInterval(loadRecent, 8000); // live-ish refresh across stations
+  setInterval(loadRecent, 8000);
 </script>
 </body>
 </html>

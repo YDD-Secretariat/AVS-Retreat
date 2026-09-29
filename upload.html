@@ -5,16 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Upload Attendance Sheets — AVS Retreat</title>
 <style>
-  :root{--accent:#4f46e5;--border:#e2e8f0;--bg:#f8fafc;}
+  :root{--accent:#4f46e5;--accent-dark:#4338ca;--border:#e2e8f0;--bg:#f8fafc;--card:#ffffff;--text:#0f172a;}
   *{box-sizing:border-box;}
   body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-    background:var(--bg);color:#0f172a;
+    background:var(--bg);color:var(--text);
     padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
-  header{position:sticky;top:0;background:var(--accent);color:#fff;padding:14px 16px;
-    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:10;
-    display:flex;justify-content:space-between;align-items:center;}
-  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.9;}
-  header h1{font-size:1.05rem;margin:0;}
+  header{position:sticky;top:0;background:linear-gradient(135deg,#4f46e5,#4338ca);color:#fff;padding:14px 16px;
+    padding-top:calc(14px + env(safe-area-inset-top,0px));z-index:20;
+    display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 10px rgba(0,0,0,0.1);}
+  header a{color:#fff;text-decoration:none;font-size:0.85rem;opacity:0.95;font-weight:600;}
+  header h1{font-size:1.05rem;margin:0;display:flex;align-items:center;gap:6px;}
+
+  .quick-nav{background:#e0e7ff;border-bottom:1px solid #c7d2fe;padding:8px 16px;display:flex;gap:8px;
+    overflow-x:auto;white-space:nowrap;font-size:0.8rem;}
+  .quick-nav a{color:#4338ca;text-decoration:none;font-weight:600;padding:4px 10px;border-radius:12px;background:#fff;}
+  .quick-nav a.active{background:#4f46e5;color:#fff;}
+
   main{max-width:520px;margin:0 auto;padding:16px;padding-bottom:60px;}
 
   .step{display:none;}
@@ -23,83 +29,101 @@
   .search-box{position:relative;margin-bottom:14px;}
   .search-box input{width:100%;padding:14px 14px;border:1px solid var(--border);border-radius:12px;
     font-size:1rem;background:#fff;}
-  .results{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
-  .result-item{padding:14px;border-bottom:1px solid var(--border);cursor:pointer;}
-  .result-item:last-child{border-bottom:none;}
-  .result-item:active{background:#eef2ff;}
-  .result-item .rn{font-weight:700;}
-  .result-item .rm{font-size:0.8rem;color:#64748b;}
-  .empty-hint{color:#64748b;font-size:0.9rem;text-align:center;padding:20px 0;}
+  .search-box input:focus{outline:2px solid var(--accent);border-color:transparent;}
 
-  .selected-school{background:#eef2ff;border-radius:12px;padding:14px 16px;margin-bottom:16px;
+  .results{background:#fff;border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
+  .result-item{padding:14px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.15s;}
+  .result-item:last-child{border-bottom:none;}
+  .result-item:hover, .result-item:active{background:#eef2ff;}
+  .result-item .rn{font-weight:700;color:#0f172a;}
+  .result-item .rm{font-size:0.8rem;color:#64748b;margin-top:2px;}
+  .empty-hint{color:#64748b;font-size:0.9rem;text-align:center;padding:24px 0;}
+
+  .selected-school{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:14px 16px;margin-bottom:16px;
     display:flex;justify-content:space-between;align-items:center;}
   .selected-school b{font-size:1.05rem;color:var(--accent);}
-  .selected-school button{background:none;border:none;color:#4f46e5;font-size:0.85rem;font-weight:600;
+  .selected-school button{background:none;border:none;color:#4f46e5;font-size:0.85rem;font-weight:700;
     text-decoration:underline;cursor:pointer;padding:0;}
 
-  .capture-area{border:2px dashed var(--border);border-radius:14px;padding:28px 16px;text-align:center;
-    background:#fff;margin-bottom:16px;}
-  .capture-area p{color:#64748b;font-size:0.85rem;margin:8px 0 16px;}
+  .capture-area{border:2px dashed #a5b4fc;border-radius:14px;padding:24px 16px;text-align:center;
+    background:#ffffff;margin-bottom:16px;}
+  .capture-area p{color:#64748b;font-size:0.85rem;margin:6px 0 16px;line-height:1.4;}
   .capture-btns{display:flex;gap:10px;}
   .capture-btns label, .capture-btns button{flex:1;padding:14px;border-radius:10px;border:none;
     font-weight:700;font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;}
-  .btn-camera{background:var(--accent);color:#fff;}
-  .btn-gallery{background:#e2e8f0;color:#0f172a;}
+  .btn-camera{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(79,70,229,0.25);}
+  .btn-gallery{background:#f1f5f9;color:#0f172a;border:1px solid var(--border)!important;}
   input[type=file]{display:none;}
 
-  .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
-  .preview-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;border:1px solid var(--border);}
+  .compress-badge{display:inline-block;background:#dcfce7;color:#166534;font-size:0.75rem;font-weight:700;
+    padding:4px 10px;border-radius:20px;margin-bottom:12px;}
+
+  .preview-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+  .preview-item{position:relative;border-radius:10px;overflow:hidden;aspect-ratio:1;border:1px solid var(--border);background:#000;}
   .preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
-  .preview-item .remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6);color:#fff;
-    border:none;border-radius:50%;width:22px;height:22px;font-size:0.75rem;cursor:pointer;}
-  .preview-item .status{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);
-    color:#fff;font-size:0.65rem;text-align:center;padding:2px 0;}
+  .preview-item .remove{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.7);color:#fff;
+    border:none;border-radius:50%;width:24px;height:24px;font-size:0.8rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .preview-item .size-tag{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.65);
+    color:#fff;font-size:0.65rem;text-align:center;padding:2px 0;font-weight:600;}
+  .preview-item .status{position:absolute;inset:0;background:rgba(15,23,42,0.75);
+    color:#fff;font-size:0.8rem;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;padding:6px;}
 
-  button.submit{width:100%;padding:15px;border:none;border-radius:12px;background:#16a34a;
-    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;}
-  button.submit:disabled{opacity:0.6;}
+  button.submit{width:100%;padding:16px;border:none;border-radius:12px;background:#16a34a;
+    color:#fff;font-size:1.05rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(22,163,74,0.25);}
+  button.submit:disabled{opacity:0.6;cursor:not-allowed;}
 
-  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;}
+  .msg{margin-top:14px;padding:12px 14px;border-radius:10px;font-size:0.9rem;display:none;font-weight:600;}
   .msg.ok{background:#dcfce7;color:#166534;display:block;}
   .msg.err{background:#fee2e2;color:#991b1b;display:block;}
 </style>
 </head>
 <body>
 <header>
-  <h1>📷 Upload Sheets</h1>
+  <h1><span>📷</span> Upload Attendance Sheets</h1>
   <a href="index.html">Home</a>
 </header>
+
+<div class="quick-nav">
+  <a href="register.html">Schools</a>
+  <a href="register-members.html">Members (Bulk)</a>
+  <a href="register-worker.html">Individuals</a>
+  <a href="register-visitor.html">Visitors</a>
+  <a href="upload.html" class="active">Uploads</a>
+  <a href="dashboard.html">Dashboard</a>
+</div>
+
 <main>
 
   <!-- STEP 1: choose school -->
   <section class="step active" id="step1">
     <p style="color:#475569;font-size:0.9rem;margin-top:0;">
-      Search for the school that was just registered, then attach its scanned attendance sheet(s).
+      Search for the school that was registered, then attach its scanned attendance sheet photo(s).
     </p>
     <div class="search-box">
-      <input id="schoolSearch" placeholder="Type a school name…" autofocus />
+      <input id="schoolSearch" placeholder="🔍 Type a school name to select…" autofocus />
     </div>
     <div class="results" id="results"></div>
-    <div class="empty-hint" id="emptyHint" style="display:none;">No matching school found. Ask the registration desk to confirm it's been registered first.</div>
+    <div class="empty-hint" id="emptyHint" style="display:none;">No matching school found. Ask the registration desk to register it first.</div>
   </section>
 
   <!-- STEP 2: capture / upload -->
   <section class="step" id="step2">
     <div class="selected-school">
       <div>
-        <div style="font-size:0.8rem;color:#64748b;">Uploading for</div>
+        <div style="font-size:0.8rem;color:#64748b;">Uploading sheets for</div>
         <b id="selectedSchoolName"></b>
       </div>
-      <button id="changeSchool">Change</button>
+      <button id="changeSchool">Change School</button>
     </div>
 
     <div class="capture-area">
-      <p>Take a photo of the scanned attendance sheet, or choose from gallery. You can add several.</p>
+      <div class="compress-badge">⚡ Auto Smart-Compression Active</div>
+      <p>Take photo(s) of the attendance sheet or choose from your gallery. High-resolution images are automatically compressed to save data & speed up upload.</p>
       <div class="capture-btns">
-        <label class="btn-camera" for="cameraInput">📸 Camera
+        <label class="btn-camera" for="cameraInput">📸 Take Photo
           <input type="file" id="cameraInput" accept="image/*" capture="environment" multiple />
         </label>
-        <label class="btn-gallery" for="galleryInput">🖼️ Gallery
+        <label class="btn-gallery" for="galleryInput">🖼️ Choose Files
           <input type="file" id="galleryInput" accept="image/*" multiple />
         </label>
       </div>
@@ -117,7 +141,7 @@
 <script>
   let allSchools = [];
   let selectedSchool = null;
-  let pendingFiles = []; // { file, dataUrl, status: 'pending'|'uploading'|'done'|'error' }
+  let pendingFiles = []; // { file, dataUrl, origSize, compSize, status: 'pending'|'uploading'|'done'|'error' }
 
   const step1 = document.getElementById('step1');
   const step2 = document.getElementById('step2');
@@ -138,22 +162,27 @@
     const q = query.trim().toLowerCase();
     if (!q) { resultsEl.innerHTML = ''; emptyHint.style.display = 'none'; return; }
     const matches = allSchools.filter(s =>
-      String(s.SchoolName).toLowerCase().includes(q)
-    ).slice(0, 12);
+      String(s.SchoolName || '').toLowerCase().includes(q)
+    ).slice(0, 15);
     if (!matches.length) {
       resultsEl.innerHTML = '';
       emptyHint.style.display = 'block';
       return;
     }
     emptyHint.style.display = 'none';
-    resultsEl.innerHTML = matches.map((s, i) => `
-      <div class="result-item" data-idx="${allSchools.indexOf(s)}">
+    resultsEl.innerHTML = matches.map(s => `
+      <div class="result-item" data-id="${s.SchoolID || s.SchoolName}">
         <div class="rn">${s.SchoolName}</div>
-        <div class="rm">${s.Location || ''} ${s.Location ? '·' : ''} Coordinator: ${s.CoordinatorName || '—'}</div>
+        <div class="rm">${s.Location || ''} ${s.Location ? '·' : ''} Coordinator: ${s.CoordinatorName || '—'} · Students: ${s.Total || (s.Male||0)+(s.Female||0)}</div>
       </div>
     `).join('');
+    
     [...resultsEl.querySelectorAll('.result-item')].forEach(el => {
-      el.addEventListener('click', () => selectSchool(allSchools[parseInt(el.dataset.idx)]));
+      el.addEventListener('click', () => {
+        const id = el.dataset.id;
+        const match = allSchools.find(s => (s.SchoolID || s.SchoolName) === id);
+        if (match) selectSchool(match);
+      });
     });
   }
   searchInput.addEventListener('input', () => renderResults(searchInput.value));
@@ -175,16 +204,68 @@
     resultsEl.innerHTML = '';
   });
 
-  function handleFiles(fileList) {
-    [...fileList].forEach(file => {
+  // Client-side Image Compression using HTML5 Canvas
+  function compressImage(file, maxWidth = 1600, quality = 0.78) {
+    return new Promise((resolve) => {
+      const origSizeKb = Math.round(file.size / 1024);
       const reader = new FileReader();
-      reader.onload = () => {
-        pendingFiles.push({ file, dataUrl: reader.result, status: 'pending' });
-        renderPreviews();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth || height > maxWidth) {
+            if (width > height) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            } else {
+              width = Math.round((width * maxWidth) / height);
+              height = maxWidth;
+            }
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          const compSizeKb = Math.round((compressedDataUrl.length * (3/4)) / 1024);
+
+          resolve({
+            dataUrl: compressedDataUrl,
+            origSize: origSizeKb,
+            compSize: compSizeKb
+          });
+        };
+        img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     });
   }
+
+  async function handleFiles(fileList) {
+    for (const file of fileList) {
+      const item = {
+        file: file,
+        dataUrl: '',
+        origSize: Math.round(file.size / 1024),
+        compSize: 0,
+        status: 'compressing'
+      };
+      pendingFiles.push(item);
+      renderPreviews();
+
+      const result = await compressImage(file);
+      item.dataUrl = result.dataUrl;
+      item.compSize = result.compSize;
+      item.status = 'pending';
+      renderPreviews();
+    }
+  }
+
   document.getElementById('cameraInput').addEventListener('change', e => handleFiles(e.target.files));
   document.getElementById('galleryInput').addEventListener('change', e => handleFiles(e.target.files));
 
@@ -194,19 +275,24 @@
   function renderPreviews() {
     previewGrid.innerHTML = pendingFiles.map((p, i) => `
       <div class="preview-item">
-        <img src="${p.dataUrl}" />
+        ${p.dataUrl ? `<img src="${p.dataUrl}" />` : ''}
         ${p.status === 'pending' ? `<button class="remove" data-i="${i}">✕</button>` : ''}
+        ${p.status === 'pending' ? `<div class="size-tag">${p.compSize} KB</div>` : ''}
         ${p.status !== 'pending' ? `<div class="status">${
-          p.status === 'uploading' ? 'Uploading…' : p.status === 'done' ? '✅ Uploaded' : '❌ Failed'
+          p.status === 'compressing' ? '⏳ Compressing…' :
+          p.status === 'uploading' ? '🚀 Uploading…' :
+          p.status === 'done' ? '✅ Uploaded' : '❌ Failed'
         }</div>` : ''}
       </div>
     `).join('');
+
     [...previewGrid.querySelectorAll('.remove')].forEach(btn => {
       btn.addEventListener('click', () => {
         pendingFiles.splice(parseInt(btn.dataset.i), 1);
         renderPreviews();
       });
     });
+
     uploadBtn.disabled = !pendingFiles.some(p => p.status === 'pending');
   }
 
@@ -228,10 +314,10 @@
       try {
         const res = await AVS.post({
           action: 'uploadPhoto',
-          schoolId: selectedSchool.SchoolID,
+          schoolId: selectedSchool.SchoolID || selectedSchool.SchoolName,
           schoolName: selectedSchool.SchoolName,
           fileName: p.file.name,
-          mimeType: p.file.type,
+          mimeType: 'image/jpeg',
           base64Data: p.dataUrl,
           station: AVS.getStation()
         });
@@ -246,9 +332,9 @@
 
     uploadBtn.textContent = 'Upload Photo(s)';
     uploadBtn.disabled = !pendingFiles.some(p => p.status === 'pending');
-    if (successCount && !failCount) showMsg(`✅ ${successCount} photo(s) uploaded for ${selectedSchool.SchoolName}.`, true);
-    else if (successCount && failCount) showMsg(`⚠️ ${successCount} uploaded, ${failCount} failed. Retry the failed ones.`, false);
-    else showMsg('❌ Upload failed. Check connection and try again.', false);
+    if (successCount && !failCount) showMsg(`✅ ${successCount} sheet photo(s) uploaded successfully for ${selectedSchool.SchoolName}.`, true);
+    else if (successCount && failCount) showMsg(`⚠️ ${successCount} uploaded, ${failCount} failed. Click to retry failed ones.`, false);
+    else showMsg('❌ Upload failed. Check connection and retry.', false);
   });
 </script>
 </body>

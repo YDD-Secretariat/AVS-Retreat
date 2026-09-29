@@ -1,0 +1,8 @@
+{
+  "name": "October Rally 2026",
+  "description": "Registration and attendance management system for October Rally 2026 retreat with school registration, member bulk counts, individual rosters, attendance sheet uploads, and live dashboard.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
