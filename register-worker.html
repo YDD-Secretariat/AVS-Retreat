@@ -59,6 +59,12 @@
   .btn-confirm{background:var(--accent);color:#fff;}
   .btn-confirm:disabled{opacity:0.6;}
 
+  .walkin-btn{width:100%;margin-top:18px;padding:14px;border:1.5px dashed var(--accent);border-radius:12px;
+    background:#faf5ff;color:var(--accent);font-weight:700;font-size:0.95rem;cursor:pointer;}
+  .form-field{margin-top:12px;}
+  .form-field label{display:block;font-size:0.8rem;color:#64748b;margin-bottom:4px;font-weight:600;}
+  .form-field input,.form-field select{width:100%;padding:13px;border:1px solid var(--border);border-radius:10px;
+    font-size:1rem;background:#fff;}
   .toast{position:fixed;bottom:20px;left:16px;right:16px;max-width:488px;margin:0 auto;
     padding:14px 16px;border-radius:12px;font-size:0.9rem;font-weight:600;text-align:center;
     box-shadow:0 8px 24px rgba(0,0,0,.2);display:none;z-index:60;}
@@ -85,6 +91,8 @@
 
   <div id="searchHint" class="search-hint">Start typing a name to search the roster.</div>
   <div class="results" id="results"></div>
+
+  <button class="walkin-btn" id="walkinBtn">➕ Not on the list? Add a new person</button>
 
 </main>
 
@@ -151,6 +159,7 @@
           <div class="rn">${w.fullName}</div>
           <div class="rs">${w.station || 'No station listed'}</div>
           ${w.phone ? `<div class="rp">${w.phone}</div>` : ''}
+          ${(w.otherDetails && w.otherDetails.Details) ? `<div class="rp">${w.otherDetails.Details}</div>` : ''}
         </div>
         <div class="badge ${w.alreadyRegistered ? 'done' : 'new'}">
           ${w.alreadyRegistered ? '✓ Registered' : 'Tap to register'}
@@ -212,6 +221,62 @@
         renderResults(lastResults);
       } else {
         showToast('❌ ' + (res.error || 'Could not save this registration.'), 'err');
+      }
+    } catch (e) {
+      overlay.classList.remove('show');
+      showToast('❌ Network error — check connection and try again.', 'err');
+    }
+  }
+
+  // ---- Walk-in: person not on the roster ----
+  document.getElementById('walkinBtn').addEventListener('click', openWalkIn);
+
+  function openWalkIn() {
+    sheetContent.innerHTML = `
+      <h2>Add a new person</h2>
+      <div class="station-line">For anyone who isn't on the roster.</div>
+      <div class="form-field"><label>Full name</label>
+        <input id="wiName" value="${searchInput.value.trim().replace(/"/g, '')}" placeholder="e.g. Ade Bello" /></div>
+      <div class="form-field"><label>Group / Station</label>
+        <select id="wiStation">
+          <option>Anthony Group 1</option><option>Anthony Group 2</option>
+          <option>Anthony Group 3</option><option>Anthony Group 4</option>
+          <option>Anthony AFSS Student</option><option>Visitor</option><option>Other</option>
+        </select></div>
+      <div class="form-field"><label>Phone (optional)</label>
+        <input id="wiPhone" type="tel" inputmode="tel" placeholder="08012345678" /></div>
+      <div class="sheet-actions">
+        <button class="btn-secondary" id="wiCancel">Cancel</button>
+        <button class="btn-confirm" id="wiSave">Register</button>
+      </div>`;
+    overlay.classList.add('show');
+    document.getElementById('wiCancel').onclick = () => overlay.classList.remove('show');
+    document.getElementById('wiSave').onclick = submitWalkIn;
+  }
+
+  async function submitWalkIn() {
+    const name = document.getElementById('wiName').value.trim();
+    if (name.length < 2) { showToast('❌ Enter the person\'s name.', 'err'); return; }
+    const btn = document.getElementById('wiSave');
+    btn.disabled = true; btn.textContent = 'Registering…';
+    try {
+      const res = await AVS.post({
+        action: 'registerWalkIn',
+        name: name,
+        station: document.getElementById('wiStation').value,
+        phone: document.getElementById('wiPhone').value.trim(),
+        submittedBy: stationInput.value.trim()
+      });
+      overlay.classList.remove('show');
+      if (res.success) {
+        showToast(`✅ ${res.fullName} registered.`, 'ok');
+        searchInput.value = ''; results.innerHTML = '';
+        searchHint.style.display = 'block';
+        searchHint.textContent = 'Start typing a name to search the roster.';
+      } else if (res.duplicate) {
+        showToast('⚠️ ' + res.error, 'warn');
+      } else {
+        showToast('❌ ' + (res.error || 'Could not save.'), 'err');
       }
     } catch (e) {
       overlay.classList.remove('show');
