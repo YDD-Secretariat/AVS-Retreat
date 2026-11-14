@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kitchen Dashboard · AVS Rally 2026</title>
+<style>
+  :root{--ink:#193047;--muted:#62788c;--line:#dce8ea;--bg:#f6faf9;--teal:#117b78;--gold:#f8e9bb;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  header{background:#fff;border-bottom:1px solid var(--line);padding:22px max(20px,calc((100vw - 1080px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .eyebrow{color:var(--teal);font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  h1{font-size:clamp(1.4rem,4vw,2rem);margin:4px 0 0}
+  header a{color:var(--teal);text-decoration:none;font-weight:700;white-space:nowrap}
+  main{max-width:1080px;margin:auto;padding:24px 20px 50px}
+  .hero{background:linear-gradient(125deg,#087b76,#20677d);color:#fff;border-radius:20px;padding:26px 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 14px 36px #0a5f691c}
+  .hero span{font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;opacity:.87;font-weight:750}
+  .hero strong{display:block;font-size:clamp(3rem,8vw,5.3rem);line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums}
+  .hero p{margin:4px 0 0;color:#e0fbf7;font-size:.88rem}
+  .hero .icon{font-size:4rem;opacity:.8}
+  .cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0 26px}
+  .metric{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+  .metric .label{color:var(--muted);font-size:.84rem;font-weight:650}
+  .metric .number{font-size:2rem;font-weight:850;margin-top:4px;font-variant-numeric:tabular-nums}
+  .columns{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;align-items:start}
+  section{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .section-head{padding:20px 22px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  h2{font-size:1.1rem;margin:0}
+  .pill{background:#e4f5f1;color:#08766f;border-radius:99px;padding:6px 10px;font-size:.75rem;font-weight:800}
+  .rows{padding:0 22px 12px}
+  .row{display:flex;justify-content:space-between;gap:12px;border-top:1px solid #eaf0f1;padding:13px 0;align-items:center}
+  .row span{overflow-wrap:anywhere}
+  .row strong{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .row small{display:block;color:var(--muted);margin-top:3px}
+  .empty{padding:16px 0;color:var(--muted)}
+  .visitor{margin-top:18px;background:#fffaf0;border-color:#f0e3c5}
+  .visitor .pill{background:var(--gold);color:#6f540b}
+  .status{margin:20px 0 0;color:var(--muted);font-size:.82rem;display:flex;justify-content:space-between;gap:10px;align-items:center}
+  button{border:1px solid #bad8d4;background:#fff;color:var(--teal);border-radius:9px;padding:8px 13px;font-weight:700;cursor:pointer}
+  .error{color:#ae3434}
+  @media(max-width:700px){header{padding:16px 18px}.hero{padding:22px}.hero .icon{display:none}.cards{grid-template-columns:repeat(3,1fr);gap:8px}.metric{padding:12px}.metric .number{font-size:1.5rem}.metric .label{font-size:.7rem}.columns{grid-template-columns:1fr}.section-head,.rows{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+<header><div><div class="eyebrow">October Rally 2026 · Operations</div><h1>Kitchen Dashboard</h1></div><a href="index.html">← Home</a></header>
+<main>
+  <div class="hero"><div><span>Grand total · registered attendance</span><strong id="grand">—</strong><p>Schools + Members + Workers / Ministers</p></div><div class="icon">🍽️</div></div>
+  <div class="cards">
+    <div class="metric"><div class="label">Students · Schools</div><div class="number" id="studentTotal">—</div></div>
+    <div class="metric"><div class="label">Members</div><div class="number" id="groupTotal">—</div></div>
+    <div class="metric"><div class="label">Workers / Ministers</div><div class="number" id="visitorTotal">—</div></div>
+  </div>
+  <div class="columns">
+    <section><div class="section-head"><h2>Schools</h2><span class="pill" id="schoolCount">—</span></div><div class="rows" id="schools"><div class="empty">Loading schools…</div></div></section>
+    <div>
+      <section><div class="section-head"><h2>Members</h2><span class="pill">Groups 1–4 + Others / Visitors</span></div><div class="rows" id="groups"><div class="empty">Loading groups…</div></div></section>
+      <section class="visitor"><div class="section-head"><h2>Workers / Ministers</h2><span class="pill" id="visitorsBadge">—</span></div><div class="rows" id="visitors"><div class="empty">Loading workers / ministers…</div></div></section>
+    </div>
+  </div>
+  <div class="status"><span id="status">Connecting to registration data…</span><button id="refresh" type="button">Refresh now</button></div>
+</main>
+<script src="config.js"></script>
+<script>
+  const number = n => Number(n || 0).toLocaleString();
+  const safe = v => String(v || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let loading = false;
+  async function refreshKitchen() {
+    if (loading) return;
+    loading = true;
+    const status = document.getElementById('status');
+    try {
+      const data = await AVS.get('getKitchenSummary');
+      document.getElementById('grand').textContent = number(data.grandTotal);
+      document.getElementById('studentTotal').textContent = number(data.studentTotal);
+      document.getElementById('groupTotal').textContent = number(data.groupTotal);
+      document.getElementById('visitorTotal').textContent = number(data.workerTotal);
+      document.getElementById('schoolCount').textContent = `${(data.schools || []).length} schools`;
+      document.getElementById('schools').innerHTML = data.schools?.length
+        ? data.schools.map(s => `<div class="row"><span>${safe(s.name)}</span><strong>${number(s.total)}</strong></div>`).join('')
+        : '<div class="empty">No schools registered yet.</div>';
+      document.getElementById('groups').innerHTML = (data.groups || []).map(g =>
+        `<div class="row"><span>${safe(g.name)}</span><strong>${number(g.total)}</strong></div>`).join('');
+      document.getElementById('visitorsBadge').textContent = number(data.workerTotal) + ' total';
+      document.getElementById('visitors').innerHTML = `<div class="row"><span>Bulk registration</span><strong>${number(data.workers?.bulkTotal)}</strong></div>
+        <div class="row"><span>Individual registration</span><strong>${number(data.workers?.individualTotal)}</strong></div>
+        <div class="row"><span>Bulk breakdown<small>Male + Female</small></span><strong>${number(data.workers?.bulkMale)} + ${number(data.workers?.bulkFemale)}</strong></div>`;
+      status.classList.remove('error');
+      status.textContent = 'Live data · Updated ' + new Date().toLocaleTimeString();
+    } catch (err) {
+      status.classList.add('error');
+      status.textContent = 'Could not load the live kitchen count. ' + (err.message || 'Check the connection.');
+    } finally { loading = false; }
+  }
+  document.getElementById('refresh').onclick = refreshKitchen;
+  refreshKitchen(); setInterval(refreshKitchen, 15000);
+</script>
+</body>
+</html>
