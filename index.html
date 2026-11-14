@@ -74,7 +74,7 @@
         </div>
         <div class="sum-item">
           <div class="sum-val" id="sumVisitors">—</div>
-          <div class="sum-lbl">Visitors</div>
+          <div class="sum-lbl">Workers / Ministers</div>
         </div>
       </div>
     </div>
@@ -99,15 +99,21 @@
       <div class="icon">👋</div>
       <div>
         <div class="title">Register Visitors <span class="badge badge-vis">M/F</span></div>
-        <div class="desc">Visitor headcount by Male & Female</div>
+        <div class="desc">Added to Members → Others / Visitors</div>
       </div>
+    </a>
+
+    <a class="card" href="register-workers.html">
+      <div class="icon">👥</div>
+      <div><div class="title">Workers / Ministers <span class="badge badge-ind">BULK</span></div>
+      <div class="desc">Male + Female headcount — exclude individually registered people</div></div>
     </a>
 
     <a class="card" href="register-worker.html">
       <div class="icon">🪪</div>
       <div>
-        <div class="title">Register Individually <span class="badge badge-ind">INDIVIDUAL</span></div>
-        <div class="desc">Search roster, check-in, or add walk-in person</div>
+        <div class="title">Workers / Ministers <span class="badge badge-ind">INDIVIDUAL</span></div>
+        <div class="desc">Individual registration — roster search or walk-in</div>
       </div>
     </a>
 
@@ -119,6 +125,11 @@
       </div>
     </a>
 
+    <a class="card" href="dashboard-kitchen.html" style="background:#f0fdfa;border-color:#99f6e4;">
+      <div class="icon">🍽️</div>
+      <div><div class="title">Dashboard Kitchen</div><div class="desc">Schools, Members, and Workers / Ministers</div></div>
+    </a>
+
     <a class="card" href="dashboard.html" style="background:linear-gradient(135deg,#ffffff,#fefce8);border-color:#fef08a;">
       <div class="icon">📊</div>
       <div>
@@ -128,7 +139,7 @@
     </a>
 
     <div class="footer-note">
-      AVS Retreat System · Auto-sync & Offline Ready
+      October Rally System · Auto-sync & Offline Ready
     </div>
   </div>
 
@@ -136,22 +147,11 @@
   <script>
     async function loadSnapshot() {
       try {
-        const [stats, bulk, vis, workers] = await Promise.all([
-          AVS.get('getStats'),
-          AVS.get('getBulkStats'),
-          AVS.get('getVisitorStats'),
-          AVS.get('getWorkerStats')
-        ]);
-        const s = parseInt(stats.totalStudents) || 0;
-        const m = parseInt(bulk.totalMembers) || 0;
-        const v = parseInt(vis.totalVisitors) || 0;
-        const w = parseInt(workers.totalRegisteredWorkers) || 0;
-        const grand = s + m + v + w;
-
-        document.getElementById('sumGrand').textContent = grand.toLocaleString();
-        document.getElementById('sumStudents').textContent = s.toLocaleString();
-        document.getElementById('sumMembers').textContent = m.toLocaleString();
-        document.getElementById('sumVisitors').textContent = v.toLocaleString();
+        const summary = await AVS.get('getKitchenSummary');
+        document.getElementById('sumGrand').textContent = Number(summary.grandTotal || 0).toLocaleString();
+        document.getElementById('sumStudents').textContent = Number(summary.studentTotal || 0).toLocaleString();
+        document.getElementById('sumMembers').textContent = Number(summary.memberTotal || 0).toLocaleString();
+        document.getElementById('sumVisitors').textContent = Number(summary.workerTotal || 0).toLocaleString();
       } catch (e) {}
     }
     loadSnapshot();
